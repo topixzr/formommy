@@ -1,7 +1,7 @@
 {
   "name": "Formommy — Russian A2",
   "short_name": "Formommy",
-  "description": "A mobile-first Russian A2 course for English-speaking learners, with a bridge toward B1.",
+  "description": "A mobile-first Russian A2 learning app for English-speaking learners.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0b0d11",
