@@ -1,15 +1,19 @@
 # Formommy
 
-A mobile-first Russian A2 learning app for an English-speaking learner, designed to build toward B1.
+A mobile-first Russian A2 learning app for an English-speaking learner.
 
-## Current course direction
-The app now starts at A2 rather than A1. The first module focuses on connected everyday Russian:
+## Current course
+The live course contains 9 sequential A2 lessons focused on practical everyday Russian:
 
-- Lesson 1: past tense and talking about yesterday
-- Lesson 2: future plans, intentions and reasons
-- Lesson 3: movement, location and practical case patterns
-- Lesson 4: opinions, comparisons and longer answers
-- Lesson 5: short storytelling and an A2-to-B1 bridge
+1. Past tense and talking about yesterday
+2. Future plans and reasons
+3. Movement, location and everyday case patterns
+4. Opinions and comparisons
+5. Connected A2 storytelling
+6. Routines and frequency
+7. Cafes, stores, prices and polite requests
+8. Needs, permission and rules
+9. Directions and transport
 
 ## Core features
 - Mobile-first web app
@@ -17,7 +21,8 @@ The app now starts at A2 rather than A1. The first module focuses on connected e
 - Listening with Russian speech synthesis
 - Multiple choice, sentence building and typed recall
 - Vocabulary review deck
-- Guided conversation practice
+- XP and progress tracking
+- Guided A2 conversation practice
 - Local progress tracking
 - Future cloud accounts and AI tutor
 
