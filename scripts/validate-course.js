@@ -16,7 +16,7 @@ const multiset = arr => [...arr].sort().join('\u0000');
 
 assert(course && Array.isArray(course.lessons), 'Course or lessons array missing');
 if (course && Array.isArray(course.lessons)) {
-  assert(course.lessons.length >= 15, 'Expected at least 15 lessons');
+  assert(course.lessons.length >= 20, 'Expected at least 20 lessons');
   course.lessons.forEach((lesson, li) => {
     const tag = `Lesson ${lesson.id ?? li + 1}`;
     assert(lesson.id === li + 1, `${tag}: ids must be contiguous from 1`);
@@ -31,6 +31,8 @@ if (course && Array.isArray(course.lessons)) {
       assert(!localWords.has(key), `${tag}: duplicate vocabulary “${word.russian}”`);
       localWords.add(key);
     });
+    const stepTypes = new Set(lesson.steps.map(step => step.type));
+    ['learn','choice','listen','build','type'].forEach(type => assert(stepTypes.has(type), `${tag}: missing ${type} exercise`));
     lesson.steps.forEach((step, si) => {
       const s = `${tag} step ${si + 1} (${step.type})`;
       assert(['learn','choice','listen','build','type'].includes(step.type), `${s}: unsupported type`);
@@ -54,8 +56,8 @@ if (course && Array.isArray(course.lessons)) {
     });
   });
 }
-assert(Array.isArray(course?.dailyPhrases) && course.dailyPhrases.length >= 7, 'Need at least 7 daily phrases');
-assert(Array.isArray(course?.couplePractice) && course.couplePractice.length >= 8, 'Need at least 8 couple-practice scenarios');
+assert(Array.isArray(course?.dailyPhrases) && course.dailyPhrases.length >= 14, 'Need at least 14 daily phrases');
+assert(Array.isArray(course?.couplePractice) && course.couplePractice.length >= 16, 'Need at least 16 couple-practice scenarios');
 
 if (failures.length) {
   console.error(`Course validation failed (${failures.length}):`);
