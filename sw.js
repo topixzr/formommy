@@ -1,11 +1,13 @@
-const CACHE_NAME = 'formommy-v9';
+const CACHE_NAME = 'formommy-v10';
 const CORE = [
   './',
   './index.html',
-  './styles.css?v=9',
-  './course-data.js?v=9',
-  './app.js?v=9',
-  './manifest.webmanifest?v=9',
+  './styles.css?v=10',
+  './module-ui.css?v=10',
+  './course-data.js?v=10',
+  './app.js?v=10',
+  './module-ui.js?v=10',
+  './manifest.webmanifest?v=10',
   './favicon.svg'
 ];
 
