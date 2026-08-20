@@ -9,24 +9,19 @@
   <meta name="apple-mobile-web-app-title" content="Formommy" />
   <meta name="description" content="A mobile-first Russian A1 to A2 course built around practical everyday couple life." />
   <title>Formommy — Russian for Us</title>
-  <link rel="manifest" href="manifest.webmanifest?v=10" />
+  <link rel="manifest" href="manifest.webmanifest?v=11" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=10" />
-  <link rel="stylesheet" href="module-ui.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="module-ui.css?v=11" />
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <button id="backButton" class="icon-button hidden" aria-label="Go back">←</button>
-      <div class="brand" id="brandButton" role="button" tabindex="0" aria-label="Go home">
-        <span class="brand-mark">Ф</span>
-        <span>Formommy</span>
-      </div>
+      <div class="brand" id="brandButton" role="button" tabindex="0" aria-label="Go home"><span class="brand-mark">Ф</span><span>Formommy</span></div>
       <div class="streak" title="Daily streak" aria-label="Daily streak">🔥 <span id="streakCount">1</span></div>
     </header>
-
     <main id="app" aria-live="polite"></main>
-
     <nav id="bottomNav" class="bottom-nav hidden" aria-label="Primary navigation">
       <button data-nav="home" class="nav-item active"><span aria-hidden="true">⌂</span><small>Home</small></button>
       <button data-nav="course" class="nav-item"><span aria-hidden="true">◫</span><small>Course</small></button>
@@ -34,14 +29,12 @@
       <button data-nav="tutor" class="nav-item"><span aria-hidden="true">✦</span><small>Practice</small></button>
     </nav>
   </div>
-
-  <script src="course-data.js?v=10"></script>
-  <script src="app.js?v=10"></script>
-  <script src="module-ui.js?v=10"></script>
+  <script src="course-data.js?v=11"></script>
+  <script src="app.js?v=11"></script>
+  <script src="module-ui.js?v=11"></script>
+  <script src="quick-practice.js?v=11"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-    }
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   </script>
 </body>
 </html>
