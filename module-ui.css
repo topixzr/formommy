@@ -1,0 +1,68 @@
+.module-explore-button {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.module-explore-button span:last-child { opacity: .68; font-size: 12px; }
+.module-preview-card { margin-top: 14px; scroll-margin-top: 76px; }
+.module-kicker { font-size: 11px; font-weight: 800; letter-spacing: .12em; opacity: .58; margin-bottom: 8px; }
+.module-preview-head, .course-module-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.module-preview-head h2, .course-module-head h2 { margin: 0 0 6px; }
+.module-preview-head p, .course-module-head p { margin: 0; opacity: .72; line-height: 1.45; }
+.module-percent { font-size: 24px; white-space: nowrap; }
+.module-lesson-stack { display: grid; gap: 8px; margin-top: 16px; }
+.module-lesson-row {
+  width: 100%; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.035);
+  border-radius: 14px; padding: 12px; display: grid; grid-template-columns: 34px minmax(0,1fr) auto;
+  align-items: center; gap: 10px; text-align: left; color: inherit;
+}
+.module-lesson-row.current { border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.075); }
+.module-lesson-row.done { opacity: .78; }
+.module-lesson-row.locked { opacity: .42; }
+.module-lesson-state {
+  width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center;
+  background: rgba(255,255,255,.08); font-size: 13px; font-weight: 800;
+}
+.module-lesson-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.module-lesson-copy strong { font-size: 14px; line-height: 1.25; }
+.module-lesson-copy small { opacity: .6; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.module-lesson-time { font-size: 11px; opacity: .55; white-space: nowrap; }
+.module-outcome { margin-top: 18px; padding-top: 17px; border-top: 1px solid rgba(255,255,255,.08); }
+.module-outcome > strong { display: block; line-height: 1.4; margin: 5px 0 10px; }
+.module-outcome ul, .module-details ul { margin: 0; padding-left: 19px; display: grid; gap: 6px; opacity: .78; font-size: 13px; line-height: 1.4; }
+.module-phrases { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+.module-phrases .eyebrow { width: 100%; }
+.module-phrases span { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.06); font-size: 14px; }
+.module-mini-roadmap { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; padding: 10px; }
+.module-mini { border: 1px solid rgba(255,255,255,.07); background: rgba(255,255,255,.025); color: inherit; border-radius: 14px; padding: 13px; text-align: left; display: flex; flex-direction: column; gap: 4px; min-height: 92px; }
+.module-mini.active { background: rgba(255,255,255,.075); border-color: rgba(255,255,255,.2); }
+.module-mini span { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .55; }
+.module-mini strong { font-size: 14px; line-height: 1.25; }
+.module-mini small { margin-top: auto; opacity: .55; }
+.course-overview { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; text-align: center; margin-bottom: 16px; }
+.course-overview div { display: flex; flex-direction: column; gap: 3px; }
+.course-overview strong { font-size: 22px; }
+.course-overview small { opacity: .55; font-size: 10px; }
+.module-course-list { display: grid; gap: 16px; }
+.course-module-card { scroll-margin-top: 76px; padding: 17px; border-radius: 20px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.035); }
+.course-module-card.active { border-color: rgba(255,255,255,.22); box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); }
+.module-score { min-width: 44px; text-align: right; display: flex; flex-direction: column; }
+.module-score strong { font-size: 20px; }
+.module-score small { opacity: .55; }
+.course-module-goal { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.045); font-size: 13px; line-height: 1.4; }
+.course-module-goal span { display: block; text-transform: uppercase; font-size: 9px; letter-spacing: .1em; opacity: .5; margin-bottom: 3px; }
+.module-details { margin-top: 13px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+.module-details summary { cursor: pointer; font-weight: 700; font-size: 13px; }
+.module-details ul { margin-top: 10px; }
+.module-phrases.compact { margin-top: 11px; }
+.module-phrases.compact span { font-size: 12px; }
+@media (max-width: 430px) {
+  .module-preview-head, .course-module-head { gap: 10px; }
+  .module-preview-head p, .course-module-head p { font-size: 13px; }
+  .module-mini-roadmap { grid-template-columns: 1fr 1fr; }
+  .module-lesson-row { grid-template-columns: 32px minmax(0,1fr) auto; padding: 11px 10px; }
+  .course-overview { gap: 4px; padding-left: 9px; padding-right: 9px; }
+}
