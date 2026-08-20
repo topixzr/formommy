@@ -3,20 +3,21 @@ const vm = require('vm');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const source = fs.readFileSync(path.join(root, 'course-data.js'), 'utf8');
+const baseSource = fs.readFileSync(path.join(root, 'course-data.js'), 'utf8');
+const packSource = fs.readFileSync(path.join(root, 'course-pack-2.js'), 'utf8');
 const sandbox = { window: {} };
 vm.createContext(sandbox);
-vm.runInContext(source, sandbox, { filename: 'course-data.js' });
+vm.runInContext(baseSource, sandbox, { filename: 'course-data.js' });
+vm.runInContext(packSource, sandbox, { filename: 'course-pack-2.js' });
 
 const course = sandbox.window.FORMOMMY_COURSE;
 const failures = [];
-const warn = msg => failures.push(msg);
-const assert = (condition, msg) => { if (!condition) warn(msg); };
+const assert = (condition, msg) => { if (!condition) failures.push(msg); };
 const multiset = arr => [...arr].sort().join('\u0000');
 
 assert(course && Array.isArray(course.lessons), 'Course or lessons array missing');
 if (course && Array.isArray(course.lessons)) {
-  assert(course.lessons.length >= 20, 'Expected at least 20 lessons');
+  assert(course.lessons.length >= 30, 'Expected at least 30 lessons');
   course.lessons.forEach((lesson, li) => {
     const tag = `Lesson ${lesson.id ?? li + 1}`;
     assert(lesson.id === li + 1, `${tag}: ids must be contiguous from 1`);
@@ -39,9 +40,7 @@ if (course && Array.isArray(course.lessons)) {
       assert(step.prompt, `${s}: prompt missing`);
       assert(step.grammar && step.grammar.rule && step.grammar.order, `${s}: grammar explanation incomplete`);
       assert(Array.isArray(step.grammar?.parts) && step.grammar.parts.length >= 1, `${s}: grammar parts missing`);
-      if (step.type === 'learn') {
-        assert(step.russian && step.translation && step.note, `${s}: learn content incomplete`);
-      }
+      if (step.type === 'learn') assert(step.russian && step.translation && step.note, `${s}: learn content incomplete`);
       if (step.type === 'choice' || step.type === 'listen') {
         assert(Array.isArray(step.answers) && step.answers.length >= 3, `${s}: needs 3+ answer choices`);
         assert(step.answers?.includes(step.correct), `${s}: correct answer not present`);
@@ -56,8 +55,8 @@ if (course && Array.isArray(course.lessons)) {
     });
   });
 }
-assert(Array.isArray(course?.dailyPhrases) && course.dailyPhrases.length >= 14, 'Need at least 14 daily phrases');
-assert(Array.isArray(course?.couplePractice) && course.couplePractice.length >= 16, 'Need at least 16 couple-practice scenarios');
+assert(Array.isArray(course?.dailyPhrases) && course.dailyPhrases.length >= 20, 'Need at least 20 daily phrases');
+assert(Array.isArray(course?.couplePractice) && course.couplePractice.length >= 24, 'Need at least 24 couple-practice scenarios');
 
 if (failures.length) {
   console.error(`Course validation failed (${failures.length}):`);
