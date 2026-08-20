@@ -1,9 +1,9 @@
-const CACHE_NAME = 'formommy-v12';
+const CACHE_NAME = 'formommy-v13';
 const CORE = [
-  './', './index.html', './styles.css?v=12', './module-ui.css?v=12', './advanced-ui.css?v=12',
-  './course-data.js?v=12', './course-pack-2.js?v=12', './preflight-migration.js?v=12', './app.js?v=12',
-  './module-ui.js?v=12', './module-pack-2.js?v=12', './learning-intelligence.js?v=12', './quick-practice.js?v=12',
-  './practice-lab.js?v=12', './milestones.js?v=12', './manifest.webmanifest?v=12', './favicon.svg'
+  './', './index.html', './styles.css?v=13', './module-ui.css?v=13', './advanced-ui.css?v=13', './ai-help.css?v=13',
+  './course-data.js?v=13', './course-pack-2.js?v=13', './preflight-migration.js?v=13', './app.js?v=13',
+  './module-ui.js?v=13', './module-pack-2.js?v=13', './learning-intelligence.js?v=13', './quick-practice.js?v=13',
+  './practice-lab.js?v=13', './milestones.js?v=13', './ai-help.js?v=13', './manifest.webmanifest?v=13', './favicon.svg'
 ];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('formommy-') && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
