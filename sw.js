@@ -1,9 +1,9 @@
-const CACHE_NAME = 'formommy-v15';
+const CACHE_NAME = 'formommy-v16';
 const CORE = [
-  './', './index.html', './styles.css?v=15', './module-ui.css?v=15', './advanced-ui.css?v=15', './ai-help.css?v=15', './home-family.css?v=15', './navigation-ui.css?v=15',
-  './course-data.js?v=15', './course-pack-2.js?v=15', './preflight-migration.js?v=15', './app.js?v=15',
-  './module-ui.js?v=15', './module-pack-2.js?v=15', './learning-intelligence.js?v=15', './quick-practice.js?v=15',
-  './practice-lab.js?v=15', './milestones.js?v=15', './ai-help.js?v=15', './home-family.js?v=15', './navigation-ui.js?v=15', './manifest.webmanifest?v=15', './favicon.svg'
+  './', './index.html', './styles.css?v=16', './module-ui.css?v=16', './advanced-ui.css?v=16', './ai-help.css?v=16', './home-family.css?v=16', './navigation-ui.css?v=16',
+  './course-data.js?v=16', './course-pack-2.js?v=16', './preflight-migration.js?v=16', './app.js?v=16',
+  './module-ui.js?v=16', './module-pack-2.js?v=16', './learning-intelligence.js?v=16', './quick-practice.js?v=16',
+  './practice-lab.js?v=16', './milestones.js?v=16', './ai-help.js?v=16', './home-family.js?v=16', './navigation-ui.js?v=16', './manifest.webmanifest?v=16', './favicon.svg'
 ];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('formommy-') && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
