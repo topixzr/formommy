@@ -11,11 +11,7 @@
       const key = localStorage.key(i);
       if (key && key.startsWith('formommy-')) storage[key] = localStorage.getItem(key);
     }
-    return {
-      format: 'formommy-backup-v1',
-      createdAt: new Date().toISOString(),
-      storage,
-    };
+    return { format: 'formommy-backup-v1', createdAt: new Date().toISOString(), storage };
   }
 
   function openDb() {
@@ -68,11 +64,27 @@
     });
   }
 
+  function parseState(raw) {
+    try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+  }
+
+  function hasMeaningfulProgress(value) {
+    return Boolean(value && (value.onboarded || (value.completedLessons || []).length || Number(value.xp) > 0 || Object.keys(value.review || {}).length));
+  }
+
   async function recoverIfNeeded() {
-    const hasMainState = Boolean(localStorage.getItem('formommy-state-v2'));
-    if (hasMainState) return;
+    if (sessionStorage.getItem('formommy-recovered') === '1') return;
     const snapshot = await getSnapshot();
-    if (!snapshot?.storage?.['formommy-state-v2']) return;
+    const backupRaw = snapshot?.storage?.['formommy-state-v2'];
+    if (!backupRaw) return;
+
+    const localRaw = localStorage.getItem('formommy-state-v2');
+    const localState = parseState(localRaw);
+    const backupState = parseState(backupRaw);
+    const localLooksReset = !localRaw || !hasMeaningfulProgress(localState);
+    const backupHasProgress = hasMeaningfulProgress(backupState);
+
+    if (!localLooksReset || !backupHasProgress) return;
     restoreSnapshot(snapshot);
     sessionStorage.setItem('formommy-recovered', '1');
     location.reload();
