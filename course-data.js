@@ -283,7 +283,7 @@
           G('Мне + state word.',[['EXPERIENCER','Мне','to me'],['STATE','холодно','cold']],'Мне → STATE.')),
         C('Which means “I am hot”?',['Мне жарко.','Я жарко.','Мне холодно.'],'Мне жарко.',
           G('Use the same «мне + state» frame.',[['EXPERIENCER','Мне','to me'],['STATE','жарко','hot']],'Мне → жарко.')),
-        L('A different structure for tired','Я устала.','I am tired.','«Устала» behaves like a feminine past-form adjective-like state; a male speaker says «устал».',
+        L('A different structure for tired','Я устала.','I am tired.','«Устала» is the feminine past form of «устать» (“to get/become tired”), but in everyday English it usually maps to “I am tired.” A male speaker says «устал».',
           G('Female speaker: Я + устала.',[['SUBJECT','Я','I'],['PREDICATE/STATE','устала','am tired']],'SUBJECT → STATE.')),
         S('Listen for reassurance','Всё нормально.',['Everything is fine / I’m okay.','I am very tired.','It is cold outside.'],'Everything is fine / I’m okay.',
           G('This is a fixed everyday phrase.',[['SUBJECT','Всё','everything'],['STATE','нормально','fine / okay']],'SUBJECT → STATE.'),'Everything is fine / I’m okay.'),
@@ -363,6 +363,126 @@
         T('Type the natural question “What will we do?”',['что будем делать','Что будем делать'],'что + будем + делать',
           G('This tests the future “we” frame from Lesson 6.',[['QUESTION','что','what'],['AUXILIARY','будем','will we'],['INFINITIVE','делать','do']],'QUESTION → AUXILIARY → INFINITIVE.'),'Что будем делать?')
       ]
+    },
+    {
+      id:16, unit:'Communication repair', title:'Я не понимаю', subtitle:'Keep the conversation going when Russian gets difficult', minutes:13, xp:125, level:'A1+',
+      goals:['Say you do not understand','Ask for repetition','Ask someone to speak more slowly'],
+      vocab:[
+        {russian:'Я не понимаю.',english:'I don’t understand.',translit:'Ya ne ponimayu.'},
+        {russian:'Повтори, пожалуйста.',english:'Repeat, please.',translit:'Povtori, pozhaluysta.'},
+        {russian:'Говори медленнее, пожалуйста.',english:'Speak more slowly, please.',translit:'Govori medlenneye, pozhaluysta.'},
+        {russian:'Что это значит?',english:'What does this mean?',translit:'Chto eto znachit?'}
+      ],
+      steps:[
+        L('Use the most important repair phrase','Я не понимаю.','I don’t understand.','This phrase lets you stay in the conversation instead of switching languages immediately.',
+          G('Put «не» directly before the verb you negate.',[['SUBJECT','Я','I'],['NEGATION','не','not'],['PREDICATE','понимаю','understand']],'SUBJECT → не → PREDICATE.')),
+        C('Ask your husband to repeat',['Повтори, пожалуйста.','Повторяю, пожалуйста.','Ты повтори я.'],'Повтори, пожалуйста.',
+          G('«Повтори» is an informal singular imperative: a direct request to one familiar person.',[['IMPERATIVE','Повтори','repeat'],['POLITENESS','пожалуйста','please']],'REQUEST → пожалуйста.')),
+        L('Ask for slower Russian','Говори медленнее, пожалуйста.','Speak more slowly, please.','This is useful during real conversation practice at home.',
+          G('Imperative + adverb + politeness word.',[['IMPERATIVE','Говори','speak'],['MANNER','медленнее','more slowly'],['POLITENESS','пожалуйста','please']],'REQUEST → MANNER → пожалуйста.')),
+        S('Listen to a meaning question','Что это значит?',['What does this mean?','What are you doing?','How much is this?'],'What does this mean?',
+          G('Question word + subject + predicate.',[['QUESTION','Что','what'],['SUBJECT','это','this'],['PREDICATE','значит','means']],'QUESTION → SUBJECT → PREDICATE.'),'What does this mean?'),
+        B('Build: “I don’t understand.”',['понимаю','не','Я'],['Я','не','понимаю'],
+          G('Negation stays directly before the verb.',[['SUBJECT','Я','I'],['NEGATION','не','not'],['PREDICATE','понимаю','understand']],'SUBJECT → не → PREDICATE.'),'Я не понимаю.'),
+        T('Type “repeat, please”',['повтори пожалуйста','Повтори пожалуйста','повтори, пожалуйста','Повтори, пожалуйста'],'повтори + пожалуйста',
+          G('Use the informal imperative with a spouse.',[['IMPERATIVE','повтори','repeat'],['POLITENESS','пожалуйста','please']],'REQUEST → пожалуйста.'),'Повтори, пожалуйста.')
+      ]
+    },
+    {
+      id:17, unit:'Requests at home', title:'Помоги мне', subtitle:'Ask for help, wait, come here, and pass things', minutes:14, xp:130, level:'A1+',
+      goals:['Make simple household requests','Use informal imperatives safely','Soften requests with пожалуйста'],
+      vocab:[
+        {russian:'Помоги мне, пожалуйста.',english:'Help me, please.',translit:'Pomogi mne, pozhaluysta.'},
+        {russian:'Подожди минуту.',english:'Wait a minute.',translit:'Podozhdi minutu.'},
+        {russian:'Иди сюда.',english:'Come here.',translit:'Idi syuda.'},
+        {russian:'Дай мне воду, пожалуйста.',english:'Give me water, please.',translit:'Day mne vodu, pozhaluysta.'}
+      ],
+      steps:[
+        L('Ask for help naturally','Помоги мне, пожалуйста.','Help me, please.','With a spouse, the singular informal imperative is normal.',
+          G('Imperative + receiver + politeness.',[['IMPERATIVE','Помоги','help'],['RECEIVER','мне','me / to me'],['POLITENESS','пожалуйста','please']],'REQUEST → RECEIVER → please.')),
+        C('Which means “Wait a minute”?',['Подожди минуту.','Подожду минуту.','Минута ждёт.'],'Подожди минуту.',
+          G('«Подожди» addresses “you”; «минуту» tells how long.',[['IMPERATIVE','Подожди','wait'],['DURATION','минуту','a minute']],'REQUEST → DURATION.')),
+        L('A very common home phrase','Иди сюда.','Come here.','Literally this is “go/walk here,” but the natural English meaning is “come here.”',
+          G('Movement imperative + direction word.',[['IMPERATIVE','Иди','come / go on foot'],['DIRECTION','сюда','here / this way']],'MOVEMENT → DIRECTION.')),
+        S('Listen for the object being requested','Дай мне воду, пожалуйста.',['Give me water, please.','Bring the dogs home.','I need water.'],'Give me water, please.',
+          G('«Дай» + receiver + object is a high-frequency request frame.',[['IMPERATIVE','Дай','give'],['RECEIVER','мне','to me'],['OBJECT','воду','water'],['POLITENESS','пожалуйста','please']],'REQUEST → RECEIVER → OBJECT → please.'),'Give me water, please.'),
+        B('Build: “Help me, please.”',['пожалуйста','мне','Помоги'],['Помоги','мне','пожалуйста'],
+          G('Start with the requested action.',[['IMPERATIVE','Помоги','help'],['RECEIVER','мне','me'],['POLITENESS','пожалуйста','please']],'REQUEST → RECEIVER → please.'),'Помоги мне, пожалуйста.'),
+        T('Type “wait a minute”',['подожди минуту','Подожди минуту'],'подожди + минуту',
+          G('Learn this as a complete household chunk.',[['IMPERATIVE','подожди','wait'],['DURATION','минуту','a minute']],'REQUEST → DURATION.'),'Подожди минуту.')
+      ]
+    },
+    {
+      id:18, unit:'Everyday check-ins', title:'Как дела?', subtitle:'Short natural answers instead of textbook speeches', minutes:13, xp:130, level:'A1+',
+      goals:['Ask how things are going','Give short natural answers','Use очень / немного / нормально'],
+      vocab:[
+        {russian:'Как дела?',english:'How are things? / How are you?',translit:'Kak dela?'},
+        {russian:'Всё хорошо.',english:'Everything is good.',translit:'Vsyo khorosho.'},
+        {russian:'Нормально.',english:'Fine / okay.',translit:'Normalno.'},
+        {russian:'Я немного устала.',english:'I’m a little tired.',translit:'Ya nemnogo ustala.'}
+      ],
+      steps:[
+        L('Use the default casual check-in','Как дела?','How are things? / How are you?','This is more general than literally asking about health; it is a standard everyday check-in.',
+          G('Fixed question chunk.',[['QUESTION','Как','how'],['NOUN','дела','things / affairs']],'Learn «Как дела?» as one phrase.')),
+        C('Choose a short natural neutral answer',['Нормально.','Я есть нормально.','Нормальная я дела.'],'Нормально.',
+          G('Russian often uses a one-word state answer when the context is obvious.',[['STATE','Нормально','fine / okay']],'A complete contextual answer can be one word.')),
+        L('Say you are only a little tired','Я немного устала.','I’m a little tired.','«Немного» softens the statement.',
+          G('Subject + degree word + state.',[['SUBJECT','Я','I'],['DEGREE','немного','a little'],['STATE','устала','tired, female']],'SUBJECT → DEGREE → STATE.')),
+        S('Listen for the positive answer','Всё хорошо.',['Everything is good.','I am a little tired.','Nothing is ready.'],'Everything is good.',
+          G('Present “is” is omitted again.',[['SUBJECT','Всё','everything'],['STATE','хорошо','good / well']],'SUBJECT → STATE.'),'Everything is good.'),
+        B('Build: “I’m a little tired.”',['устала','немного','Я'],['Я','немного','устала'],
+          G('Place the degree word before what it modifies.',[['SUBJECT','Я','I'],['DEGREE','немного','a little'],['STATE','устала','tired']],'SUBJECT → DEGREE → STATE.'),'Я немного устала.'),
+        T('Type “How are things?”',['как дела','Как дела'],'как + дела',
+          G('Treat it as a fixed everyday question.',[['QUESTION','как дела','how are things?']],'Use question intonation.'),'Как дела?')
+      ]
+    },
+    {
+      id:19, unit:'Morning and night', title:'Доброе утро', subtitle:'Daily routines and affectionate basics', minutes:13, xp:130, level:'A1+',
+      goals:['Use morning/night phrases','Ask about sleep','Say you are going to bed'],
+      vocab:[
+        {russian:'Доброе утро.',english:'Good morning.',translit:'Dobroye utro.'},
+        {russian:'Спокойной ночи.',english:'Good night.',translit:'Spokoynoy nochi.'},
+        {russian:'Как ты спала?',english:'How did you sleep? (to a woman)',translit:'Kak ty spala?'},
+        {russian:'Я иду спать.',english:'I’m going to bed.',translit:'Ya idu spat.'}
+      ],
+      steps:[
+        L('Start the day','Доброе утро.','Good morning.','Use it as a fixed greeting; you do not need to analyze the adjective ending yet.',
+          G('Fixed greeting chunk.',[['GREETING','Доброе утро','good morning']],'Learn the phrase as one unit.')),
+        C('Which phrase belongs at bedtime?',['Спокойной ночи.','Доброе утро.','Как дела утром?'],'Спокойной ночи.',
+          G('«Спокойной ночи» is the standard good-night wish.',[['WISH','Спокойной ночи','good night']],'Use as a complete phrase.')),
+        L('Ask your wife how she slept','Как ты спала?','How did you sleep?','Because the person addressed is female, the past form is «спала».',
+          G('Question + subject + feminine past predicate.',[['QUESTION','Как','how'],['SUBJECT','ты','you'],['PREDICATE','спала','slept, female']],'QUESTION → SUBJECT → PREDICATE.')),
+        S('Listen to the bedtime plan','Я иду спать.',['I’m going to bed.','I slept well.','I am already awake.'],'I’m going to bed.',
+          G('«Иду + infinitive» can describe going to do an activity.',[['SUBJECT','Я','I'],['PREDICATE','иду','am going'],['INFINITIVE','спать','to sleep']],'SUBJECT → MOVEMENT → ACTIVITY.'),'I’m going to bed.'),
+        B('Build: “How did you sleep?”',['спала','Как','ты'],['Как','ты','спала'],
+          G('Question word first is the easiest neutral order.',[['QUESTION','Как','how'],['SUBJECT','ты','you'],['PREDICATE','спала','slept']],'QUESTION → SUBJECT → PREDICATE.'),'Как ты спала?'),
+        T('Type “good night”',['спокойной ночи','Спокойной ночи'],'спокойной + ночи',
+          G('Memorize the whole fixed phrase.',[['WISH','спокойной ночи','good night']],'It stands alone.'),'Спокойной ночи.')
+      ]
+    },
+    {
+      id:20, unit:'Checkpoint', title:'Обычный вечер', subtitle:'A realistic evening from text message to bedtime', minutes:17, xp:175, level:'Checkpoint · A1+ → A2',
+      goals:['Follow a multi-turn couple exchange','Repair communication in Russian','Combine plans, needs, requests, and states'],
+      vocab:[
+        {russian:'Ты скоро? Я уже дома.',english:'Will you be here soon? I’m already home.',translit:'Ty skoro? Ya uzhe doma.'},
+        {russian:'Что будем есть?',english:'What will we eat?',translit:'Chto budem yest?'},
+        {russian:'Повтори, пожалуйста.',english:'Repeat, please.',translit:'Povtori, pozhaluysta.'},
+        {russian:'Спокойной ночи. Я тебя люблю.',english:'Good night. I love you.',translit:'Spokoynoy nochi. Ya tebya lyublyu.'}
+      ],
+      steps:[
+        L('Read a realistic arrival exchange','— Ты скоро?\n— Да. Ещё пять минут.','— Will you be here soon?\n— Yes. Five more minutes.','This combines the short-message language from Lesson 10.',
+          G('Short contextual clauses can omit information that both speakers know.',[['QUESTION','Ты скоро?','will you be here soon?'],['ANSWER','Да','yes'],['DELAY','Ещё пять минут','five more minutes']],'QUESTION → short answer → timing.')),
+        C('At home you hear «Что будем есть?»',['What will we eat?','What did we eat?','Where is the food?'],'What will we eat?',
+          G('«Будем + infinitive» is the familiar “we will…” future pattern.',[['QUESTION','Что','what'],['AUXILIARY','будем','will we'],['INFINITIVE','есть','eat']],'QUESTION → AUXILIARY → ACTION.')),
+        L('Stay in Russian when one phrase is unclear','Я не понимаю. Повтори, пожалуйста.','I don’t understand. Repeat, please.','Repair phrases are part of communication, not a failure of communication.',
+          G('Statement of difficulty + direct request.',[['STATEMENT','Я не понимаю','I do not understand'],['REQUEST','Повтори','repeat'],['POLITENESS','пожалуйста','please']],'STATE THE ISSUE → REQUEST.')),
+        S('Listen to the end of the evening','Я устала. Я иду спать. Спокойной ночи.',['I’m tired. I’m going to bed. Good night.','I’m hungry. Let’s go to the store.','I was tired yesterday morning.'],'I’m tired. I’m going to bed. Good night.',
+          G('Three short clauses are easier to process than one long translated sentence.',[['STATE','Я устала','I’m tired'],['PLAN','Я иду спать','I’m going to bed'],['WISH','Спокойной ночи','good night']],'STATE → PLAN → WISH.'),'I’m tired. I’m going to bed. Good night.'),
+        B('Build: “I don’t understand. Repeat, please.”',['Повтори','не понимаю','Я','пожалуйста'],['Я','не понимаю','Повтори','пожалуйста'],
+          G('First explain the difficulty, then make the request.',[['SUBJECT','Я','I'],['NEGATIVE PREDICATE','не понимаю','do not understand'],['IMPERATIVE','Повтори','repeat'],['POLITENESS','пожалуйста','please']],'STATEMENT → REQUEST.'),'Я не понимаю. Повтори, пожалуйста.'),
+        T('Type “I love you”',['я тебя люблю','Я тебя люблю'],'я + тебя + люблю',
+          G('A natural neutral order is subject + object + verb here.',[['SUBJECT','я','I'],['OBJECT','тебя','you'],['PREDICATE','люблю','love']],'SUBJECT → OBJECT → PREDICATE. Other orders are possible, but learn this one first.'),'Я тебя люблю.')
+      ]
     }
   ];
 
@@ -373,7 +493,14 @@
     {russian:'Что будем есть?', english:'What will we eat?', context:'Dinner'},
     {russian:'Пойдём гулять?', english:'Shall we go for a walk?', context:'With the dogs'},
     {russian:'Мне холодно.', english:'I’m cold.', context:'At home or outside'},
-    {russian:'Скоро буду дома.', english:'I’ll be home soon.', context:'Quick message'}
+    {russian:'Скоро буду дома.', english:'I’ll be home soon.', context:'Quick message'},
+    {russian:'Я тебя люблю.', english:'I love you.', context:'Any time'},
+    {russian:'Помоги мне, пожалуйста.', english:'Help me, please.', context:'At home'},
+    {russian:'Подожди минуту.', english:'Wait a minute.', context:'Busy moment'},
+    {russian:'Я не понимаю.', english:'I don’t understand.', context:'Keep speaking Russian'},
+    {russian:'Доброе утро.', english:'Good morning.', context:'Morning'},
+    {russian:'Спокойной ночи.', english:'Good night.', context:'Bedtime'},
+    {russian:'Как дела?', english:'How are things?', context:'Check-in'}
   ];
 
   const couplePractice = [
@@ -384,7 +511,15 @@
     {scene:'Suggest walking the dogs.', target:'Пойдём гулять?', help:'Shall we go for a walk?'},
     {scene:'Say you need to drive / go.', target:'Мне нужно ехать.', help:'I need to go.'},
     {scene:'Say you like Eugene.', target:'Мне нравится Юджин.', help:'I like Eugene.'},
-    {scene:'Ask where he is.', target:'Где ты?', help:'Where are you?'}
+    {scene:'Ask where he is.', target:'Где ты?', help:'Where are you?'},
+    {scene:'Tell him you do not understand.', target:'Я не понимаю.', help:'I don’t understand.'},
+    {scene:'Ask him to repeat, politely.', target:'Повтори, пожалуйста.', help:'Repeat, please.'},
+    {scene:'Ask him to speak more slowly.', target:'Говори медленнее, пожалуйста.', help:'Speak more slowly, please.'},
+    {scene:'Ask him to wait one minute.', target:'Подожди минуту.', help:'Wait a minute.'},
+    {scene:'Tell him you are going to bed.', target:'Я иду спать.', help:'I’m going to bed.'},
+    {scene:'Say good night.', target:'Спокойной ночи.', help:'Good night.'},
+    {scene:'Say you love him.', target:'Я тебя люблю.', help:'I love you.'},
+    {scene:'Ask what a Russian word or phrase means.', target:'Что это значит?', help:'What does this mean?'}
   ];
 
   window.FORMOMMY_COURSE = {
