@@ -51,6 +51,10 @@ Vocabulary is seeded into review on first lesson completion. Current intervals a
 
 This is intentionally simple. If review volume grows substantially, migrate to a proper FSRS implementation while preserving stored card ids (`lessonId:index`).
 
+## Immediate error correction
+
+A wrong choice, build, or typed response is added to a per-lesson retry queue. After the normal lesson steps finish, only the missed patterns are shown once more before completion. This prevents a learner from “passing through” an error without correction while avoiding punitive lives or endless loops.
+
 ## State compatibility
 
 State is versioned separately from curriculum. A major curriculum rewrite should not mark new lessons complete merely because older lessons used the same numeric ids. Preserve durable metrics only when their semantics remain valid.
