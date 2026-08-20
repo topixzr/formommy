@@ -7,33 +7,34 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Formommy" />
-  <title>Formommy — Russian A1 to A2</title>
-  <link rel="manifest" href="manifest.webmanifest?v=6" />
+  <meta name="description" content="A mobile-first Russian A1 to A2 course built around practical everyday couple life." />
+  <title>Formommy — Russian for Us</title>
+  <link rel="manifest" href="manifest.webmanifest?v=7" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="trial.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=7" />
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <button id="backButton" class="icon-button hidden" aria-label="Go back">←</button>
-      <div class="brand" id="brandButton" role="button" tabindex="0">
+      <div class="brand" id="brandButton" role="button" tabindex="0" aria-label="Go home">
         <span class="brand-mark">Ф</span>
         <span>Formommy</span>
       </div>
-      <div class="streak" title="Daily streak">🔥 <span id="streakCount">1</span></div>
+      <div class="streak" title="Daily streak" aria-label="Daily streak">🔥 <span id="streakCount">1</span></div>
     </header>
 
     <main id="app" aria-live="polite"></main>
 
     <nav id="bottomNav" class="bottom-nav hidden" aria-label="Primary navigation">
-      <button data-nav="home" class="nav-item active"><span>⌂</span><small>Home</small></button>
-      <button data-nav="course" class="nav-item"><span>◫</span><small>Course</small></button>
-      <button data-nav="review" class="nav-item"><span>↻</span><small>Review</small></button>
-      <button data-nav="tutor" class="nav-item"><span>✦</span><small>Practice</small></button>
+      <button data-nav="home" class="nav-item active"><span aria-hidden="true">⌂</span><small>Home</small></button>
+      <button data-nav="course" class="nav-item"><span aria-hidden="true">◫</span><small>Course</small></button>
+      <button data-nav="review" class="nav-item"><span aria-hidden="true">↻</span><small>Review</small></button>
+      <button data-nav="tutor" class="nav-item"><span aria-hidden="true">✦</span><small>Practice</small></button>
     </nav>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="course-data.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
