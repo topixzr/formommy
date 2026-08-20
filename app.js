@@ -23,6 +23,7 @@ const defaultState = {
   lastStudyDate: null,
   review: {},
   settings: { transliteration: true },
+  curriculumVersion: course.version,
 };
 
 let state = loadState();
@@ -40,9 +41,9 @@ function loadState() {
       return normalizeState({
         ...defaultState,
         onboarded: legacy.onboarded,
-        completedLessons: legacy.completedLessons || [],
+        completedLessons: [],
         xp: legacy.xp || 0,
-        streak: legacy.streak || 1,
+        streak: 1,
         lastVisit: legacy.lastVisit || null,
       });
     }
@@ -57,7 +58,13 @@ function normalizeState(raw) {
     settings: { ...defaultState.settings, ...(raw.settings || {}) },
     review: raw.review || {},
   };
-  merged.completedLessons = [...new Set((merged.completedLessons || []).filter(id => lessons.some(l => l.id === id)))];
+  if (merged.curriculumVersion !== course.version) {
+    merged.completedLessons = [];
+    merged.review = {};
+    merged.curriculumVersion = course.version;
+  } else {
+    merged.completedLessons = [...new Set((merged.completedLessons || []).filter(id => lessons.some(l => l.id === id)))];
+  }
   return merged;
 }
 
@@ -149,7 +156,7 @@ function renderOnboarding() {
       <h1>Russian you can use at home tonight.</h1>
       <p>Short lessons for an English-speaking adult: readable Russian, simple English explanations, listening, sentence building, and grammar that shows exactly what each word is doing.</p>
       <div class="feature-pills">
-        <span>15 lessons</span><span>90 exercises</span><span>🔊 Listening</span><span>🧩 Sentence anatomy</span><span>↻ Smart review</span>
+        <span>${lessons.length} lessons</span><span>${lessons.reduce((n,l) => n + l.steps.length, 0)} exercises</span><span>🔊 Listening</span><span>🧩 Sentence anatomy</span><span>↻ Smart review</span>
       </div>
       <section class="card onboarding-example">
         <div class="prompt">FIRST USEFUL PHRASE</div>
@@ -215,9 +222,17 @@ function renderHome() {
       <div><strong>A1</strong><span>home · questions · present</span></div>
       <div><strong>A1+</strong><span>past · future · needs · places</span></div>
       <div><strong>A2 bridge</strong><span>connected thoughts · real situations</span></div>
-    </section>`;
+    </section>
+    <button id="toggleTranslit" class="display-toggle" aria-pressed="${state.settings.transliteration}">
+      <span>Pronunciation guide</span><strong>${state.settings.transliteration ? 'ON' : 'OFF'}</strong>
+    </button>`;
   document.getElementById('continueButton').addEventListener('click', () => finished ? navigate('review') : startLesson(target.id));
   app.querySelector('[data-home-action="review"]').addEventListener('click', () => navigate('review'));
+  document.getElementById('toggleTranslit').addEventListener('click', () => {
+    state.settings.transliteration = !state.settings.transliteration;
+    saveState();
+    renderHome();
+  });
   bindSpeechButtons();
 }
 
@@ -388,24 +403,52 @@ function renderPractice() {
 function startLesson(id) {
   const lesson = lessonById(id);
   if (!lesson || !isUnlocked(id)) return;
-  lessonSession = { lessonId: id, step: 0, selected: [], locked: false, wrongAttempts: 0 };
+  lessonSession = { lessonId: id, step: 0, selected: [], locked: false, wrongAttempts: 0, retrySteps: [], retryCursor: 0, reviewMode: false };
   navigate('lesson');
 }
 function currentLesson() { return lessonById(lessonSession?.lessonId); }
-function currentStep() { return currentLesson()?.steps[lessonSession?.step]; }
+function currentStep() {
+  const lesson = currentLesson();
+  if (!lesson || !lessonSession) return null;
+  if (lessonSession.reviewMode) {
+    const originalIndex = lessonSession.retrySteps[lessonSession.retryCursor];
+    return lesson.steps[originalIndex];
+  }
+  return lesson.steps[lessonSession.step];
+}
+function recordMistake() {
+  if (!lessonSession) return;
+  lessonSession.wrongAttempts++;
+  if (!lessonSession.reviewMode && !lessonSession.retrySteps.includes(lessonSession.step)) {
+    lessonSession.retrySteps.push(lessonSession.step);
+  }
+}
 
 function renderLesson() {
   if (!lessonSession) return navigate('course');
   const lesson = currentLesson();
-  const step = currentStep();
+  let step = currentStep();
+  if (!step && !lessonSession.reviewMode && lessonSession.retrySteps.length) {
+    lessonSession.reviewMode = true;
+    lessonSession.retryCursor = 0;
+    lessonSession.locked = false;
+    lessonSession.selected = [];
+    step = currentStep();
+  }
   if (!step) return finishLesson();
-  const percent = Math.round(((lessonSession.step + 1) / lesson.steps.length) * 100);
+  const position = lessonSession.reviewMode ? lessonSession.retryCursor + 1 : lessonSession.step + 1;
+  const total = lessonSession.reviewMode ? lessonSession.retrySteps.length : lesson.steps.length;
+  const percent = Math.round((position / total) * 100);
   app.innerHTML = `
     <section class="lesson-stage">
       <div class="lesson-progress">
         <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
-        <div class="progress-meta"><span>Lesson ${lesson.id} · ${escapeHtml(lesson.title)}</span><span>${lessonSession.step + 1}/${lesson.steps.length}</span></div>
+        <div class="progress-meta">
+          <span>${lessonSession.reviewMode ? 'Fix mistakes' : `Lesson ${lesson.id} · ${escapeHtml(lesson.title)}`}</span>
+          <span>${position}/${total}</span>
+        </div>
       </div>
+      ${lessonSession.reviewMode ? '<div class="retry-banner">One more try. Same pattern, no penalty.</div>' : ''}
       <div id="lessonContent"></div>
     </section>`;
   const container = document.getElementById('lessonContent');
@@ -431,8 +474,23 @@ function grammarBox(grammar) {
       ${grammar.tip ? `<div class="grammar-tip"><strong>Remember:</strong> ${escapeHtml(grammar.tip)}</div>` : ''}
     </section>`;
 }
+function romanizeRussian(text = '') {
+  const map = {
+    'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y',
+    'к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f',
+    'х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'
+  };
+  return [...text].map(ch => {
+    const lower = ch.toLocaleLowerCase('ru-RU');
+    const latin = map[lower];
+    if (latin === undefined) return ch;
+    return ch === lower ? latin : latin.charAt(0).toUpperCase() + latin.slice(1);
+  }).join('');
+}
 function transliteration(step) {
-  return state.settings.transliteration && step.translit ? `<div class="translit">${escapeHtml(step.translit)}</div>` : '';
+  if (!state.settings.transliteration) return '';
+  const value = step.translit || romanizeRussian(step.russian);
+  return value ? `<div class="translit">${escapeHtml(value)}</div>` : '';
 }
 function renderLearnStep(container, step) {
   container.innerHTML = `
@@ -480,7 +538,7 @@ function handleChoice(button, step) {
   if (!correct) {
     button.classList.add('wrong');
     button.disabled = true;
-    lessonSession.wrongAttempts++;
+    recordMistake();
     navigator.vibrate?.(30);
     const feedback = document.getElementById('feedback');
     feedback.innerHTML = `<div class="feedback wrong-feedback"><strong>Not this one.</strong><span>${escapeHtml(step.grammar?.rule || 'Try again.')}</span></div>`;
@@ -506,30 +564,41 @@ function renderBuildStep(container, step) {
     <button id="checkSentence" class="primary">Check sentence</button>
     <button id="resetSentence" class="text-button">Reset</button>
     <div id="feedback"></div>`;
-  const zone = document.getElementById('sentenceZone');
   container.querySelectorAll('[data-chip-index]').forEach(btn => btn.addEventListener('click', () => {
     if (lessonSession.locked || btn.classList.contains('used')) return;
-    const chip = step.chips[Number(btn.dataset.chipIndex)];
-    lessonSession.selected.push(chip);
-    btn.classList.add('used');
-    zone.innerHTML = lessonSession.selected.map((word, i) => `<button class="selected-chip russian-text" data-selected-index="${i}">${escapeHtml(word)}</button>`).join('');
-    bindSelectedRemoval(container, step);
+    lessonSession.selected.push({ index: Number(btn.dataset.chipIndex), text: step.chips[Number(btn.dataset.chipIndex)] });
+    refreshBuildZone(container, step);
   }));
-  document.getElementById('resetSentence').addEventListener('click', () => { lessonSession.selected = []; renderBuildStep(container, step); });
+  document.getElementById('resetSentence').addEventListener('click', () => {
+    lessonSession.selected = [];
+    refreshBuildZone(container, step);
+    document.getElementById('feedback').innerHTML = '';
+  });
   document.getElementById('checkSentence').addEventListener('click', () => checkBuiltSentence(step));
+  refreshBuildZone(container, step);
 }
-function bindSelectedRemoval(container, step) {
+function refreshBuildZone(container, step) {
+  const zone = document.getElementById('sentenceZone');
+  if (!lessonSession.selected.length) {
+    zone.innerHTML = '<span class="zone-placeholder">Tap the parts in order</span>';
+  } else {
+    zone.innerHTML = lessonSession.selected.map((item, i) => `<button class="selected-chip russian-text" data-selected-index="${i}">${escapeHtml(item.text)}</button>`).join('');
+  }
+  container.querySelectorAll('[data-chip-index]').forEach(btn => {
+    const used = lessonSession.selected.some(item => item.index === Number(btn.dataset.chipIndex));
+    btn.classList.toggle('used', used);
+  });
   container.querySelectorAll('[data-selected-index]').forEach(btn => btn.addEventListener('click', () => {
     if (lessonSession.locked) return;
     lessonSession.selected.splice(Number(btn.dataset.selectedIndex), 1);
-    renderBuildStep(container, step);
+    refreshBuildZone(container, step);
   }));
 }
 function checkBuiltSentence(step) {
-  const isCorrect = lessonSession.selected.length === step.correct.length && lessonSession.selected.every((v,i) => v === step.correct[i]);
+  const isCorrect = lessonSession.selected.length === step.correct.length && lessonSession.selected.every((item,i) => item.text === step.correct[i]);
   const feedback = document.getElementById('feedback');
   if (!isCorrect) {
-    lessonSession.wrongAttempts++;
+    recordMistake();
     feedback.innerHTML = `<div class="feedback wrong-feedback"><strong>Check the order.</strong><span>${escapeHtml(step.grammar?.order || 'Try again.')}</span></div>`;
     navigator.vibrate?.(30);
     return;
@@ -559,7 +628,7 @@ function checkTyped(step) {
   const input = document.getElementById('typedAnswer');
   const feedback = document.getElementById('feedback');
   if (!isCorrectTyped(input.value, step.answers)) {
-    lessonSession.wrongAttempts++;
+    recordMistake();
     feedback.innerHTML = `<div class="feedback wrong-feedback"><strong>Try once more.</strong><span>Hint: ${escapeHtml(step.hint || step.grammar?.rule || '')}</span></div>`;
     navigator.vibrate?.(30);
     input.select();
@@ -573,7 +642,8 @@ function checkTyped(step) {
   document.getElementById('nextButton').addEventListener('click', nextLessonStep);
 }
 function nextLessonStep() {
-  lessonSession.step++;
+  if (lessonSession.reviewMode) lessonSession.retryCursor++;
+  else lessonSession.step++;
   lessonSession.selected = [];
   lessonSession.locked = false;
   saveState({ study: true });
@@ -582,6 +652,7 @@ function nextLessonStep() {
 function finishLesson() {
   const lesson = currentLesson();
   const firstCompletion = !state.completedLessons.includes(lesson.id);
+  const correctedMistakes = lessonSession.wrongAttempts;
   if (firstCompletion) {
     state.completedLessons.push(lesson.id);
     state.xp += lesson.xp;
@@ -596,7 +667,7 @@ function finishLesson() {
       <div class="onboarding-art small-art">✓</div>
       <div class="eyebrow">Lesson ${lesson.id} complete</div>
       <h1>${escapeHtml(lesson.title)}</h1>
-      <p>${firstCompletion ? `+${lesson.xp} XP · ${lesson.vocab.length} review cards added` : `Practice complete · +${Math.round(lesson.xp * .2)} XP`}</p>
+      <p>${firstCompletion ? `+${lesson.xp} XP · ${lesson.vocab.length} review cards added` : `Practice complete · +${Math.round(lesson.xp * .2)} XP`}${correctedMistakes ? ` · ${correctedMistakes} mistake${correctedMistakes === 1 ? '' : 's'} corrected` : ''}</p>
       <section class="card goal-summary">
         <div class="prompt">YOU CAN NOW</div>
         ${lesson.goals.map(goal => `<div class="goal-row">✓ <span>${escapeHtml(goal)}</span></div>`).join('')}
