@@ -4,7 +4,15 @@ const backButton = document.getElementById('backButton');
 const streakCount = document.getElementById('streakCount');
 const brandButton = document.getElementById('brandButton');
 
-const STORAGE_KEY = 'formommy-state-a1a2-v1';
+const course = window.FORMOMMY_COURSE;
+if (!course || !Array.isArray(course.lessons)) {
+  throw new Error('Course data failed to load.');
+}
+const lessons = course.lessons;
+const STORAGE_KEY = 'formommy-state-v2';
+const LEGACY_KEY = 'formommy-state-a1a2-v1';
+const DAY = 86400000;
+const SRS_INTERVALS = [0, 1, 3, 7, 14, 30];
 
 const defaultState = {
   onboarded: false,
@@ -12,638 +20,143 @@ const defaultState = {
   xp: 0,
   streak: 1,
   lastVisit: null,
+  lastStudyDate: null,
+  review: {},
+  settings: { transliteration: true },
 };
-
-const lessons = [
-  {
-    id: 1,
-    title: 'Вчера',
-    subtitle: 'Simple past tense for everyday speech',
-    minutes: 11,
-    xp: 70,
-    level: 'A1 → A2',
-    vocab: [
-      { russian: 'вчера', translit: 'vchera', english: 'yesterday' },
-      { russian: 'Я работала.', translit: 'Ya rabotala.', english: 'I worked. (female speaker)' },
-      { russian: 'Я была дома.', translit: 'Ya byla doma.', english: 'I was at home. (female speaker)' },
-    ],
-    steps: [
-      {
-        type: 'learn',
-        prompt: 'Start with one clear past-tense sentence',
-        russian: 'Вчера я работала.',
-        translit: 'Vchera ya rabotala.',
-        translation: 'Yesterday I worked.',
-        note: 'For a female speaker, many Russian past-tense verbs end in -ла. Here: работать → работала.',
-        grammar: {
-          rule: 'Past tense, female speaker: many verbs use -ла.',
-          parts: [
-            ['TIME', 'Вчера', 'when?'],
-            ['SUBJECT', 'я', 'who?'],
-            ['PREDICATE', 'работала', 'what did she do?'],
-          ],
-          order: 'Russian often puts time first: «Вчера я работала». «Я работала вчера» is also correct, but the first version sounds very natural when answering “What did you do yesterday?”',
-        },
-      },
-      {
-        type: 'choice',
-        prompt: 'Which sentence means “Yesterday I worked”?',
-        answers: ['Вчера я работала.', 'Завтра я работала.', 'Вчера я работаю.'],
-        correct: 'Вчера я работала.',
-        grammar: {
-          rule: 'Use a past-tense verb with «вчера».',
-          parts: [
-            ['TIME', 'вчера', 'past-time signal'],
-            ['SUBJECT', 'я', 'the person'],
-            ['PREDICATE', 'работала', 'past action'],
-          ],
-          order: 'The easiest pattern is TIME + SUBJECT + PREDICATE.',
-        },
-      },
-      {
-        type: 'learn',
-        prompt: 'A very common past-tense sentence',
-        russian: 'Я была дома.',
-        translit: 'Ya byla doma.',
-        translation: 'I was at home.',
-        note: '«Была» is the feminine past form of «быть» — “to be.” A male speaker would say «Я был дома».',
-        grammar: {
-          rule: 'Past tense of “to be”: была for a female speaker, был for a male speaker.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PREDICATE', 'была', 'was'],
-            ['PLACE', 'дома', 'where?'],
-          ],
-          order: 'SUBJECT + PREDICATE + PLACE is the simplest neutral order here.',
-        },
-      },
-      {
-        type: 'listen',
-        prompt: 'Listen and choose the sentence you hear',
-        speech: 'Вчера я была дома.',
-        answers: ['Вчера я была дома.', 'Завтра я буду дома.', 'Я работала утром.'],
-        correct: 'Вчера я была дома.',
-        translation: 'Yesterday I was at home.',
-        grammar: {
-          rule: 'Listen for both the time word «вчера» and the feminine past form «была».',
-          parts: [
-            ['TIME', 'Вчера', 'yesterday'],
-            ['SUBJECT', 'я', 'I'],
-            ['PREDICATE', 'была', 'was'],
-            ['PLACE', 'дома', 'at home'],
-          ],
-          order: 'TIME + SUBJECT + PREDICATE + PLACE.',
-        },
-      },
-      {
-        type: 'build',
-        prompt: 'Build: “Yesterday I worked.”',
-        chips: ['работала', 'Вчера', 'я'],
-        correct: ['Вчера', 'я', 'работала'],
-        answerText: 'Вчера я работала.',
-        grammar: {
-          rule: 'Put the time first, then who, then the action.',
-          parts: [
-            ['TIME', 'Вчера', 'when?'],
-            ['SUBJECT', 'я', 'who?'],
-            ['PREDICATE', 'работала', 'what happened?'],
-          ],
-          order: 'TIME → SUBJECT → PREDICATE.',
-        },
-      },
-      {
-        type: 'type',
-        prompt: 'Type “yesterday” in Russian',
-        placeholder: 'в…',
-        answers: ['вчера'],
-        hint: 'в-ч-е-р-а',
-        answerText: 'вчера',
-        grammar: {
-          rule: '«Вчера» is an adverb of time. It does not change form.',
-          parts: [['TIME WORD', 'вчера', 'yesterday']],
-          order: 'It can go at the beginning or end of a sentence. Beginning position is especially common when setting the time context.',
-        },
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: 'Завтра',
-    subtitle: 'Simple future with буду + infinitive',
-    minutes: 12,
-    xp: 80,
-    level: 'A1 → A2',
-    vocab: [
-      { russian: 'завтра', translit: 'zavtra', english: 'tomorrow' },
-      { russian: 'Я буду работать.', translit: 'Ya budu rabotat.', english: 'I will work.' },
-      { russian: 'Я буду готовить.', translit: 'Ya budu gotovit.', english: 'I will cook.' },
-    ],
-    steps: [
-      {
-        type: 'learn',
-        prompt: 'Use the easiest future pattern',
-        russian: 'Завтра я буду работать.',
-        translit: 'Zavtra ya budu rabotat.',
-        translation: 'Tomorrow I will work.',
-        note: 'A very useful future pattern is «буду + infinitive». The infinitive is the dictionary form: работать, готовить, отдыхать.',
-        grammar: {
-          rule: 'Future: буду + infinitive.',
-          parts: [
-            ['TIME', 'Завтра', 'when?'],
-            ['SUBJECT', 'я', 'who?'],
-            ['PREDICATE', 'буду работать', 'will work'],
-          ],
-          order: 'TIME + SUBJECT + PREDICATE is a clear beginner pattern.',
-        },
-      },
-      {
-        type: 'choice',
-        prompt: 'Which sentence means “Tomorrow I will cook”?',
-        answers: ['Завтра я буду готовить.', 'Вчера я готовила.', 'Сейчас я готовлю.'],
-        correct: 'Завтра я буду готовить.',
-        grammar: {
-          rule: 'For this future pattern, look for «буду + infinitive».',
-          parts: [
-            ['TIME', 'Завтра', 'tomorrow'],
-            ['SUBJECT', 'я', 'I'],
-            ['PREDICATE', 'буду готовить', 'will cook'],
-          ],
-          order: 'The words «буду готовить» stay together as one predicate phrase.',
-        },
-      },
-      {
-        type: 'learn',
-        prompt: 'Change only the main verb',
-        russian: 'Я буду отдыхать.',
-        translit: 'Ya budu otdykhat.',
-        translation: 'I will rest.',
-        note: 'Keep «я буду» and replace the infinitive: работать → готовить → отдыхать.',
-        grammar: {
-          rule: 'Subject + буду + infinitive.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['AUXILIARY', 'буду', 'marks future'],
-            ['INFINITIVE', 'отдыхать', 'main action'],
-          ],
-          order: '«Буду» comes before the infinitive: «буду отдыхать», not «отдыхать буду» for the neutral beginner pattern.',
-        },
-      },
-      {
-        type: 'listen',
-        prompt: 'Listen and choose the future sentence',
-        speech: 'Завтра я буду работать.',
-        answers: ['Завтра я буду работать.', 'Вчера я работала.', 'Я работаю сейчас.'],
-        correct: 'Завтра я буду работать.',
-        translation: 'Tomorrow I will work.',
-        grammar: {
-          rule: 'Future signals: «завтра» + «буду».',
-          parts: [
-            ['TIME', 'Завтра', 'tomorrow'],
-            ['SUBJECT', 'я', 'I'],
-            ['PREDICATE', 'буду работать', 'will work'],
-          ],
-          order: 'Hear the future marker «буду» before the infinitive.',
-        },
-      },
-      {
-        type: 'build',
-        prompt: 'Build: “Tomorrow I will rest.”',
-        chips: ['я', 'Завтра', 'буду отдыхать'],
-        correct: ['Завтра', 'я', 'буду отдыхать'],
-        answerText: 'Завтра я буду отдыхать.',
-        grammar: {
-          rule: 'TIME → SUBJECT → FUTURE PREDICATE.',
-          parts: [
-            ['TIME', 'Завтра', 'when?'],
-            ['SUBJECT', 'я', 'who?'],
-            ['PREDICATE', 'буду отдыхать', 'what will happen?'],
-          ],
-          order: 'Keep «буду отдыхать» together.',
-        },
-      },
-      {
-        type: 'type',
-        prompt: 'Type “tomorrow” in Russian',
-        placeholder: 'з…',
-        answers: ['завтра'],
-        hint: 'з-а-в-т-р-а',
-        answerText: 'завтра',
-        grammar: {
-          rule: '«Завтра» is an adverb of time and does not change form.',
-          parts: [['TIME WORD', 'завтра', 'tomorrow']],
-          order: 'Putting it first immediately tells the listener that the sentence is about the future.',
-        },
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: 'Куда? Где?',
-    subtitle: 'Going somewhere vs already being there',
-    minutes: 13,
-    xp: 90,
-    level: 'A1 → A2',
-    vocab: [
-      { russian: 'Я иду в магазин.', translit: 'Ya idu v magazin.', english: 'I am going to the store.' },
-      { russian: 'Я в магазине.', translit: 'Ya v magazine.', english: 'I am in the store.' },
-      { russian: 'куда?', translit: 'kuda?', english: 'where to?' },
-      { russian: 'где?', translit: 'gde?', english: 'where?' },
-    ],
-    steps: [
-      {
-        type: 'learn',
-        prompt: 'First: movement to a place',
-        russian: 'Я иду в магазин.',
-        translit: 'Ya idu v magazin.',
-        translation: 'I am going to the store.',
-        note: 'Use «в магазин» when there is movement toward the store. The question is «Куда?» — “Where to?”',
-        grammar: {
-          rule: 'Movement: идти + в + destination.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PREDICATE', 'иду', 'am going'],
-            ['DIRECTION', 'в магазин', 'where to?'],
-          ],
-          order: 'SUBJECT + PREDICATE + DIRECTION.',
-        },
-      },
-      {
-        type: 'learn',
-        prompt: 'Now: already inside the place',
-        russian: 'Я в магазине.',
-        translit: 'Ya v magazine.',
-        translation: 'I am in the store.',
-        note: 'When you are already there, Russian changes the noun ending: магазин → магазине.',
-        grammar: {
-          rule: 'Location: в + place ending in -е in this example.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PLACE', 'в магазине', 'where?'],
-          ],
-          order: 'Russian normally omits “am/is/are” in the present tense. So «Я в магазине» literally has no spoken verb “am.”',
-        },
-      },
-      {
-        type: 'choice',
-        prompt: 'You are already inside the store. Which sentence is correct?',
-        answers: ['Я в магазине.', 'Я иду в магазин.', 'Я магазин.'],
-        correct: 'Я в магазине.',
-        grammar: {
-          rule: 'Ask yourself: movement or location? Here it is location.',
-          parts: [
-            ['SUBJECT', 'Я', 'I'],
-            ['PLACE', 'в магазине', 'in the store'],
-          ],
-          order: 'For location, use «Я + в + place». No present-tense “am” is needed.',
-        },
-      },
-      {
-        type: 'listen',
-        prompt: 'Listen: is the person going there or already there?',
-        speech: 'Я иду в магазин.',
-        answers: ['Going to the store', 'Already in the store', 'Leaving the store'],
-        correct: 'Going to the store',
-        translation: 'Я иду в магазин.',
-        grammar: {
-          rule: 'The verb «иду» tells you there is movement.',
-          parts: [
-            ['SUBJECT', 'Я', 'I'],
-            ['PREDICATE', 'иду', 'am going'],
-            ['DIRECTION', 'в магазин', 'to the store'],
-          ],
-          order: 'Verb of movement + destination means “where to?”',
-        },
-      },
-      {
-        type: 'build',
-        prompt: 'Build: “I am going to the store.”',
-        chips: ['в магазин', 'Я', 'иду'],
-        correct: ['Я', 'иду', 'в магазин'],
-        answerText: 'Я иду в магазин.',
-        grammar: {
-          rule: 'SUBJECT → PREDICATE → DIRECTION.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PREDICATE', 'иду', 'what am I doing?'],
-            ['DIRECTION', 'в магазин', 'where to?'],
-          ],
-          order: 'This is the neutral, easiest word order to learn first.',
-        },
-      },
-      {
-        type: 'choice',
-        prompt: 'Which pair is correct?',
-        answers: ['в магазин → в магазине', 'в магазине → в магазином', 'в магазин → на магазине'],
-        correct: 'в магазин → в магазине',
-        grammar: {
-          rule: 'Remember the pair as a chunk: «в магазин» = to the store, «в магазине» = in the store.',
-          parts: [
-            ['DIRECTION', 'в магазин', 'where to?'],
-            ['LOCATION', 'в магазине', 'where?'],
-          ],
-          order: 'Do not memorize a full case table yet; memorize this useful contrast first.',
-        },
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: 'Мне нравится',
-    subtitle: 'Two easy ways to say what you like',
-    minutes: 13,
-    xp: 90,
-    level: 'A1 → A2',
-    vocab: [
-      { russian: 'Мне нравится кофе.', translit: 'Mne nravitsya kofe.', english: 'I like coffee.' },
-      { russian: 'Я люблю кофе.', translit: 'Ya lyublyu kofe.', english: 'I love / really like coffee.' },
-      { russian: 'Мне нравится этот город.', translit: 'Mne nravitsya etot gorod.', english: 'I like this city.' },
-    ],
-    steps: [
-      {
-        type: 'learn',
-        prompt: 'The common Russian pattern for “I like…”',
-        russian: 'Мне нравится кофе.',
-        translit: 'Mne nravitsya kofe.',
-        translation: 'I like coffee.',
-        note: 'Russian structures this differently from English. «Мне» means “to me,” and «нравится» is closer to “is pleasing.”',
-        grammar: {
-          rule: 'Мне + нравится + thing.',
-          parts: [
-            ['EXPERIENCER', 'Мне', 'to me'],
-            ['PREDICATE', 'нравится', 'is pleasing / is liked'],
-            ['SUBJECT', 'кофе', 'the thing that is liked'],
-          ],
-          order: 'The natural beginner pattern is «Мне нравится + thing». The grammatical subject comes after the verb here.',
-        },
-      },
-      {
-        type: 'choice',
-        prompt: 'Which sentence means “I like coffee”?',
-        answers: ['Мне нравится кофе.', 'Я нравится кофе.', 'Мне кофе нравится я.'],
-        correct: 'Мне нравится кофе.',
-        grammar: {
-          rule: 'Do not translate English “I like” word-for-word. Use the Russian pattern «Мне нравится…».',
-          parts: [
-            ['EXPERIENCER', 'Мне', 'to me'],
-            ['PREDICATE', 'нравится', 'is pleasing'],
-            ['SUBJECT', 'кофе', 'coffee'],
-          ],
-          order: 'Мне → нравится → thing.',
-        },
-      },
-      {
-        type: 'learn',
-        prompt: 'A second useful pattern',
-        russian: 'Я люблю кофе.',
-        translit: 'Ya lyublyu kofe.',
-        translation: 'I love / really like coffee.',
-        note: '«Я люблю…» is structurally closer to English: subject + verb + object. It often sounds stronger than «мне нравится».',
-        grammar: {
-          rule: 'Я + люблю + object.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PREDICATE', 'люблю', 'love / really like'],
-            ['OBJECT', 'кофе', 'what?'],
-          ],
-          order: 'SUBJECT + PREDICATE + OBJECT.',
-        },
-      },
-      {
-        type: 'listen',
-        prompt: 'Listen and choose the meaning',
-        speech: 'Мне нравится этот город.',
-        answers: ['I like this city.', 'I live in this city.', 'This city likes me.'],
-        correct: 'I like this city.',
-        translation: 'Мне нравится этот город.',
-        grammar: {
-          rule: '«Мне нравится…» describes what is pleasing to the speaker.',
-          parts: [
-            ['EXPERIENCER', 'Мне', 'to me'],
-            ['PREDICATE', 'нравится', 'is pleasing'],
-            ['SUBJECT', 'этот город', 'this city'],
-          ],
-          order: 'The liked thing can come after «нравится».',
-        },
-      },
-      {
-        type: 'build',
-        prompt: 'Build: “I like this city.”',
-        chips: ['этот город', 'Мне', 'нравится'],
-        correct: ['Мне', 'нравится', 'этот город'],
-        answerText: 'Мне нравится этот город.',
-        grammar: {
-          rule: 'Use the fixed frame «Мне нравится + thing».',
-          parts: [
-            ['EXPERIENCER', 'Мне', 'to me'],
-            ['PREDICATE', 'нравится', 'is pleasing'],
-            ['SUBJECT', 'этот город', 'this city'],
-          ],
-          order: 'Мне → нравится → этот город.',
-        },
-      },
-      {
-        type: 'type',
-        prompt: 'Type the verb “нравится”',
-        placeholder: 'н…',
-        answers: ['нравится'],
-        hint: 'н-р-а-в-и-т-с-я',
-        answerText: 'нравится',
-        grammar: {
-          rule: 'Learn «нравится» as one whole form first.',
-          parts: [['PREDICATE', 'нравится', 'is pleasing / is liked']],
-          order: 'At this stage, use it in the frame «Мне нравится…».',
-        },
-      },
-    ],
-  },
-  {
-    id: 5,
-    title: 'И, но, потому что',
-    subtitle: 'Connect two simple thoughts',
-    minutes: 14,
-    xp: 100,
-    level: 'A1 → A2',
-    vocab: [
-      { russian: 'и', translit: 'i', english: 'and' },
-      { russian: 'но', translit: 'no', english: 'but' },
-      { russian: 'потому что', translit: 'potomu chto', english: 'because' },
-      { russian: 'Я устала.', translit: 'Ya ustala.', english: 'I am tired. (female speaker)' },
-    ],
-    steps: [
-      {
-        type: 'learn',
-        prompt: 'Connect two actions with “and”',
-        russian: 'Я работаю и учу русский.',
-        translit: 'Ya rabotayu i uchu russkiy.',
-        translation: 'I work and I study Russian.',
-        note: 'When the same person does both actions, Russian usually does not repeat «я».',
-        grammar: {
-          rule: 'One subject can control two predicates connected by «и».',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PREDICATE 1', 'работаю', 'first action'],
-            ['CONNECTOR', 'и', 'and'],
-            ['PREDICATE 2', 'учу', 'second action'],
-            ['OBJECT', 'русский', 'what?'],
-          ],
-          order: 'SUBJECT + ACTION 1 + и + ACTION 2 + OBJECT.',
-        },
-      },
-      {
-        type: 'learn',
-        prompt: 'Show contrast with “but”',
-        russian: 'Я люблю кофе, но сейчас пью чай.',
-        translit: 'Ya lyublyu kofe, no seychas pyu chay.',
-        translation: 'I like coffee, but right now I am drinking tea.',
-        note: '«Но» connects two ideas that contrast with each other.',
-        grammar: {
-          rule: 'Use «но» between two contrasting parts.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PREDICATE 1', 'люблю', 'like'],
-            ['OBJECT', 'кофе', 'coffee'],
-            ['CONNECTOR', 'но', 'but'],
-            ['TIME', 'сейчас', 'now'],
-            ['PREDICATE 2', 'пью', 'am drinking'],
-            ['OBJECT', 'чай', 'tea'],
-          ],
-          order: 'The subject «я» is understood in the second half and does not need to be repeated.',
-        },
-      },
-      {
-        type: 'learn',
-        prompt: 'Give a reason with “because”',
-        russian: 'Я дома, потому что я устала.',
-        translit: 'Ya doma, potomu chto ya ustala.',
-        translation: 'I am at home because I am tired.',
-        note: '«Потому что» introduces the reason. «Устала» is the feminine form; a male speaker says «устал».',
-        grammar: {
-          rule: 'Main idea + потому что + reason.',
-          parts: [
-            ['SUBJECT', 'Я', 'who?'],
-            ['PLACE', 'дома', 'where?'],
-            ['CONNECTOR', 'потому что', 'because'],
-            ['SUBJECT', 'я', 'who?'],
-            ['PREDICATE', 'устала', 'am tired'],
-          ],
-          order: 'First say what is true, then explain why after «потому что».',
-        },
-      },
-      {
-        type: 'choice',
-        prompt: 'Which sentence means “I am at home because I am tired”?',
-        answers: ['Я дома, потому что я устала.', 'Я дома, но я устала вчера.', 'Потому я дома устала что.'],
-        correct: 'Я дома, потому что я устала.',
-        grammar: {
-          rule: 'The connector «потому что» stays together as one phrase.',
-          parts: [
-            ['MAIN IDEA', 'Я дома', 'I am at home'],
-            ['CONNECTOR', 'потому что', 'because'],
-            ['REASON', 'я устала', 'I am tired'],
-          ],
-          order: 'MAIN IDEA → потому что → REASON.',
-        },
-      },
-      {
-        type: 'listen',
-        prompt: 'Listen and choose the connected thought',
-        speech: 'Я люблю кофе, но сейчас пью чай.',
-        answers: ['I like coffee, but right now I am drinking tea.', 'I drink coffee because I am tired.', 'I do not like tea.'],
-        correct: 'I like coffee, but right now I am drinking tea.',
-        translation: 'Я люблю кофе, но сейчас пью чай.',
-        grammar: {
-          rule: 'Listen for «но» — it signals contrast.',
-          parts: [
-            ['IDEA 1', 'Я люблю кофе', 'I like coffee'],
-            ['CONNECTOR', 'но', 'but'],
-            ['IDEA 2', 'сейчас пью чай', 'right now I drink tea'],
-          ],
-          order: 'Idea 1 + но + contrasting idea 2.',
-        },
-      },
-      {
-        type: 'build',
-        prompt: 'Build: “I am at home because I am tired.”',
-        chips: ['я устала', 'Я дома', 'потому что'],
-        correct: ['Я дома', 'потому что', 'я устала'],
-        answerText: 'Я дома, потому что я устала.',
-        grammar: {
-          rule: 'Place the reason after «потому что».',
-          parts: [
-            ['MAIN IDEA', 'Я дома', 'I am at home'],
-            ['CONNECTOR', 'потому что', 'because'],
-            ['REASON', 'я устала', 'I am tired'],
-          ],
-          order: 'MAIN IDEA → CONNECTOR → REASON.',
-        },
-      },
-      {
-        type: 'type',
-        prompt: 'Type “because” in Russian',
-        placeholder: 'п…',
-        answers: ['потому что'],
-        hint: 'потому + что',
-        answerText: 'потому что',
-        grammar: {
-          rule: '«Потому что» is two words, but it works as one connector: “because.”',
-          parts: [['CONNECTOR', 'потому что', 'because']],
-          order: 'It normally comes before the reason.',
-        },
-      },
-    ],
-  },
-];
 
 let state = loadState();
 let currentView = state.onboarded ? 'home' : 'onboarding';
 let lessonSession = null;
 let reviewSession = null;
+let practiceIndex = 0;
 
 function loadState() {
   try {
-    return { ...defaultState, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') };
-  } catch {
-    return { ...defaultState };
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (stored) return normalizeState(stored);
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null');
+    if (legacy) {
+      return normalizeState({
+        ...defaultState,
+        onboarded: legacy.onboarded,
+        completedLessons: legacy.completedLessons || [],
+        xp: legacy.xp || 0,
+        streak: legacy.streak || 1,
+        lastVisit: legacy.lastVisit || null,
+      });
+    }
+  } catch {}
+  return structuredCloneSafe(defaultState);
+}
+
+function normalizeState(raw) {
+  const merged = {
+    ...structuredCloneSafe(defaultState),
+    ...raw,
+    settings: { ...defaultState.settings, ...(raw.settings || {}) },
+    review: raw.review || {},
+  };
+  merged.completedLessons = [...new Set((merged.completedLessons || []).filter(id => lessons.some(l => l.id === id)))];
+  return merged;
+}
+
+function structuredCloneSafe(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function localDateKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function updateStreak() {
+  const today = localDateKey();
+  if (!state.lastStudyDate) return;
+  if (state.lastStudyDate === today) return;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (state.lastStudyDate !== localDateKey(yesterday)) {
+    state.streak = 1;
   }
 }
 
-function saveState() {
+function markStudyDay() {
+  const today = localDateKey();
+  if (state.lastStudyDate === today) return;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  state.streak = state.lastStudyDate === localDateKey(yesterday) ? state.streak + 1 : 1;
+  state.lastStudyDate = today;
+}
+
+function saveState({ study = false } = {}) {
+  if (study) markStudyDay();
   state.lastVisit = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   streakCount.textContent = state.streak;
 }
 
-function setNav(active) {
-  bottomNav.querySelectorAll('.nav-item').forEach((button) => {
-    button.classList.toggle('active', button.dataset.nav === active);
-  });
+function escapeHtml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
+function escapeAttribute(value = '') { return escapeHtml(value).replaceAll('\n', '&#10;'); }
+function containsCyrillic(value = '') { return /[А-Яа-яЁё]/.test(value); }
+function normalizeAnswer(value = '') {
+  return value.toLocaleLowerCase('ru-RU').trim().replace(/[.,!?;:—–-]/g, '').replace(/\s+/g, ' ');
+}
+function isCorrectTyped(value, answers) {
+  const v = normalizeAnswer(value);
+  return answers.some(answer => normalizeAnswer(answer) === v);
+}
+function lessonById(id) { return lessons.find(l => l.id === id); }
+function completedCount() { return state.completedLessons.length; }
+function isUnlocked(id) {
+  if (id === 1) return true;
+  return state.completedLessons.includes(id) || state.completedLessons.includes(id - 1);
+}
+function firstIncompleteLesson() {
+  return lessons.find(l => !state.completedLessons.includes(l.id)) || lessons[lessons.length - 1];
+}
+function coursePercent() { return Math.round((completedCount() / lessons.length) * 100); }
 
+function setNav(active) {
+  bottomNav.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === active));
+}
 function navigate(view) {
   currentView = view;
-  backButton.classList.toggle('hidden', view !== 'lesson');
-  bottomNav.classList.toggle('hidden', !state.onboarded || view === 'lesson');
+  const inLesson = view === 'lesson';
+  backButton.classList.toggle('hidden', !inLesson);
+  bottomNav.classList.toggle('hidden', !state.onboarded || inLesson);
   setNav(view);
-  if (view === 'onboarding') renderOnboarding();
-  if (view === 'home') renderHome();
-  if (view === 'course') renderCourse();
-  if (view === 'review') renderReview();
-  if (view === 'tutor') renderPractice();
-  if (view === 'lesson') renderLesson();
+  const renderers = {
+    onboarding: renderOnboarding, home: renderHome, course: renderCourse,
+    review: renderReview, tutor: renderPractice, lesson: renderLesson
+  };
+  renderers[view]?.();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function renderOnboarding() {
   app.innerHTML = `
     <section class="onboarding">
-      <div class="onboarding-art">A1→A2</div>
-      <div class="eyebrow">Russian A1 → A2</div>
-      <h1>Understand the sentence, not just the answer.</h1>
-      <p>Five slower lessons with readable Russian, simple vocabulary, and a grammar explanation inside every exercise: subject, predicate, other sentence parts, and why the word order works.</p>
+      <div class="onboarding-art">Я</div>
+      <div class="eyebrow">Russian for real life · A1 → A2</div>
+      <h1>Russian you can use at home tonight.</h1>
+      <p>Short lessons for an English-speaking adult: readable Russian, simple English explanations, listening, sentence building, and grammar that shows exactly what each word is doing.</p>
       <div class="feature-pills">
-        <span>🇷🇺 A1 → A2</span><span>🔊 Listening</span><span>🧩 Sentence structure</span><span>📘 Grammar notes</span>
+        <span>15 lessons</span><span>90 exercises</span><span>🔊 Listening</span><span>🧩 Sentence anatomy</span><span>↻ Smart review</span>
       </div>
-      <button id="startButton" class="primary">Start trial course</button>
+      <section class="card onboarding-example">
+        <div class="prompt">FIRST USEFUL PHRASE</div>
+        <div class="phrase-russian">Хочешь кофе?</div>
+        <div class="translation">Do you want coffee?</div>
+      </section>
+      <button id="startButton" class="primary">Start with Lesson 1</button>
     </section>`;
   document.getElementById('startButton').addEventListener('click', () => {
     state.onboarded = true;
@@ -652,337 +165,486 @@ function renderOnboarding() {
   });
 }
 
+function dailyPhrase() {
+  const i = Math.abs(Math.floor(Date.now() / DAY)) % course.dailyPhrases.length;
+  return course.dailyPhrases[i];
+}
+
 function renderHome() {
-  const done = state.completedLessons.length;
-  const coursePercent = Math.round((done / lessons.length) * 100);
-  const firstIncomplete = lessons.find((lesson) => !state.completedLessons.includes(lesson.id));
-  const targetLesson = firstIncomplete || lessons[lessons.length - 1];
+  const done = completedCount();
+  const target = firstIncompleteLesson();
+  const phrase = dailyPhrase();
+  const due = dueReviewCards().length;
+  const finished = done === lessons.length;
   app.innerHTML = `
-    <section class="hero">
-      <div class="eyebrow">Russian A1 → A2</div>
-      <h1>${done === lessons.length ? 'Пять уроков готовы.' : 'Спокойно и понятно.'}</h1>
-      <p>${done === lessons.length ? 'The five trial lessons are complete. Review the patterns and decide what should come next.' : 'Each exercise now explains the grammar before you move on.'}</p>
+    <section class="hero compact-hero">
+      <div class="eyebrow">${finished ? 'COURSE COMPLETE' : `Lesson ${target.id} of ${lessons.length}`}</div>
+      <h1>${finished ? 'You built the foundation.' : escapeHtml(target.title)}</h1>
+      <p>${finished ? 'Keep the Russian active with review and couple practice.' : escapeHtml(target.subtitle)}</p>
     </section>
+
     <section class="card glow-card">
-      <div class="eyebrow">${done === lessons.length ? 'Trial complete' : 'Continue learning'}</div>
-      <h2 class="russian">${done === lessons.length ? 'A1 → A2 foundation' : targetLesson.title}</h2>
-      <p>${done === lessons.length ? '5 lessons · grammar-first practice' : targetLesson.subtitle}</p>
-      <div class="progress-bar"><div class="progress-fill" style="width:${coursePercent}%"></div></div>
-      <div class="progress-meta"><span>${done} of ${lessons.length} lessons</span><span>${coursePercent}%</span></div>
-      <div style="height:16px"></div>
-      <button id="continueButton" class="primary">${done === lessons.length ? 'Review vocabulary' : `${done === 0 ? 'Start Lesson 1' : 'Continue'} · ${targetLesson.minutes} min`}</button>
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">${finished ? 'Next step' : escapeHtml(target.unit)}</div>
+          <h2>${finished ? 'Review what matters' : escapeHtml(target.goals[0])}</h2>
+        </div>
+        <span class="level-pill">${escapeHtml(target.level)}</span>
+      </div>
+      <div class="progress-bar" aria-label="Course progress"><div class="progress-fill" style="width:${coursePercent()}%"></div></div>
+      <div class="progress-meta"><span>${done}/${lessons.length} lessons</span><span>${coursePercent()}%</span></div>
+      <div class="spacer"></div>
+      <button id="continueButton" class="primary">${finished ? 'Start review' : `${done ? 'Continue' : 'Start'} · ${target.minutes} min`}</button>
     </section>
+
     <div class="stats">
+      <button class="stat interactive-stat" data-home-action="review"><strong>${due}</strong><small>due review</small></button>
       <div class="stat"><strong>${state.xp}</strong><small>XP</small></div>
       <div class="stat"><strong>${state.streak}</strong><small>day streak</small></div>
-      <div class="stat"><strong>${done}</strong><small>lessons</small></div>
     </div>
-    <div class="section-title"><div><h3>Today’s Russian</h3><p>Read the structure, then say it aloud.</p></div></div>
-    <section class="card">
-      <div class="prompt">TRY THIS TODAY</div>
-      <h2 class="russian russian-display">Вчера я была дома.</h2>
-      <div class="translit">Vchera ya byla doma.</div>
-      <p class="translation">Yesterday I was at home.</p>
-      <button class="secondary speak" data-speech="Вчера я была дома.">🔊 Hear it</button>
+
+    <div class="section-title"><div><h3>Use this today</h3><p>${escapeHtml(phrase.context)}</p></div></div>
+    <section class="card daily-phrase">
+      <div class="phrase-russian">${escapeHtml(phrase.russian)}</div>
+      <div class="translation">${escapeHtml(phrase.english)}</div>
+      <button class="secondary speak" data-speech="${escapeAttribute(phrase.russian)}">🔊 Hear Russian</button>
+    </section>
+
+    <div class="section-title"><div><h3>Your course</h3><p>${lessons.length * 6} focused exercises, one pattern at a time.</p></div></div>
+    <section class="card roadmap">
+      <div><strong>A1</strong><span>home · questions · present</span></div>
+      <div><strong>A1+</strong><span>past · future · needs · places</span></div>
+      <div><strong>A2 bridge</strong><span>connected thoughts · real situations</span></div>
     </section>`;
-  document.getElementById('continueButton').addEventListener('click', () => {
-    if (done === lessons.length) navigate('review');
-    else startLesson(targetLesson.id);
-  });
+  document.getElementById('continueButton').addEventListener('click', () => finished ? navigate('review') : startLesson(target.id));
+  app.querySelector('[data-home-action="review"]').addEventListener('click', () => navigate('review'));
   bindSpeechButtons();
 }
 
 function renderCourse() {
+  let currentUnit = '';
+  const cards = lessons.map(lesson => {
+    const unitHeading = lesson.unit !== currentUnit ? `<div class="unit-heading"><span>${escapeHtml(lesson.unit)}</span></div>` : '';
+    currentUnit = lesson.unit;
+    const done = state.completedLessons.includes(lesson.id);
+    const unlocked = isUnlocked(lesson.id);
+    return `${unitHeading}
+      <button class="lesson-card ${done ? 'done' : ''} ${!unlocked ? 'locked' : ''}" data-lesson="${lesson.id}" ${!unlocked ? 'disabled' : ''}>
+        <div class="lesson-number">${done ? '✓' : lesson.id}</div>
+        <div>
+          <div class="lesson-title">${escapeHtml(lesson.title)}</div>
+          <div class="lesson-subtitle">${escapeHtml(lesson.subtitle)}</div>
+          <div class="lesson-tags"><span>${escapeHtml(lesson.level)}</span><span>${lesson.minutes} min</span><span>${lesson.steps.length} exercises</span></div>
+        </div>
+        <div class="lesson-arrow">${unlocked ? '›' : '🔒'}</div>
+      </button>`;
+  }).join('');
   app.innerHTML = `
-    <section class="hero"><div class="eyebrow">Trial course</div><h1>Russian A1 → A2</h1><p>Five slower lessons with grammar explanations in every exercise.</p></section>
-    <div class="lesson-list">
-      ${lessons.map((lesson) => {
-        const done = state.completedLessons.includes(lesson.id);
-        const unlocked = lesson.id === 1 || state.completedLessons.includes(lesson.id - 1);
-        return `<button class="lesson-card ${done ? 'done' : ''} ${!unlocked ? 'locked' : ''}" data-lesson="${lesson.id}" ${!unlocked ? 'disabled' : ''}>
-          <div class="lesson-number">${done ? '✓' : lesson.id}</div>
-          <div><div class="lesson-title russian">${lesson.title}</div><div class="lesson-subtitle">${lesson.level} · ${lesson.subtitle} · ${lesson.minutes} min</div></div>
-          <div>${!unlocked ? '🔒' : '›'}</div>
-        </button>`;
-      }).join('')}
-    </div>`;
-  app.querySelectorAll('[data-lesson]:not([disabled])').forEach((button) => {
-    button.addEventListener('click', () => startLesson(Number(button.dataset.lesson)));
+    <section class="hero compact-hero">
+      <div class="eyebrow">Course map</div><h1>A1 → early A2</h1>
+      <p>Each lesson introduces one practical pattern, then makes you recognize, hear, build, and recall it.</p>
+    </section>
+    <div class="lesson-list">${cards}</div>`;
+  app.querySelectorAll('[data-lesson]:not([disabled])').forEach(btn => btn.addEventListener('click', () => startLesson(Number(btn.dataset.lesson))));
+}
+
+function vocabKey(lessonId, index) { return `${lessonId}:${index}`; }
+function seedLessonReview(lesson) {
+  lesson.vocab.forEach((_, index) => {
+    const key = vocabKey(lesson.id, index);
+    if (!state.review[key]) state.review[key] = { level: 0, due: Date.now() };
   });
 }
-
-function learnedVocabulary() {
-  return lessons
-    .filter((lesson) => state.completedLessons.includes(lesson.id))
-    .flatMap((lesson) => lesson.vocab.map((word) => ({ ...word, lessonId: lesson.id })));
+function allReviewCards() {
+  const result = [];
+  lessons.forEach(lesson => lesson.vocab.forEach((word, index) => {
+    if (!state.completedLessons.includes(lesson.id)) return;
+    const key = vocabKey(lesson.id, index);
+    const meta = state.review[key] || { level: 0, due: 0 };
+    result.push({ key, lessonId: lesson.id, ...word, ...meta });
+  }));
+  return result;
 }
-
+function dueReviewCards() {
+  const now = Date.now();
+  return allReviewCards().filter(card => !card.due || card.due <= now).sort((a,b) => (a.due || 0) - (b.due || 0));
+}
+function startReviewSession() {
+  const due = dueReviewCards();
+  const pool = due.length ? due : allReviewCards().sort((a,b) => (a.due || 0) - (b.due || 0)).slice(0, 8);
+  reviewSession = { cards: pool, index: 0, revealed: false };
+}
 function renderReview() {
-  const words = learnedVocabulary();
-  if (!words.length) {
-    app.innerHTML = `<section class="hero"><div class="eyebrow">Review</div><h1>Nothing to review yet.</h1><p>Finish Lesson 1 first.</p></section><section class="card empty-state"><div class="empty-icon">🧠</div><button id="reviewLessonButton" class="primary">Open Lesson 1</button></section>`;
+  const all = allReviewCards();
+  if (!all.length) {
+    app.innerHTML = `
+      <section class="hero"><div class="eyebrow">Smart review</div><h1>Finish Lesson 1 first.</h1>
+      <p>Vocabulary enters review only after you encounter it in a lesson.</p></section>
+      <section class="card empty-state"><div class="empty-icon">↻</div><button id="reviewLessonButton" class="primary">Open Lesson 1</button></section>`;
     document.getElementById('reviewLessonButton').addEventListener('click', () => startLesson(1));
     return;
   }
-  if (!reviewSession || reviewSession.baseLength !== words.length) {
-    reviewSession = { words: [...words].sort(() => Math.random() - 0.5), index: 0, revealed: false, baseLength: words.length };
-  }
+  if (!reviewSession || !reviewSession.cards.length) startReviewSession();
   renderReviewCard();
 }
-
 function renderReviewCard() {
-  const word = reviewSession.words[reviewSession.index];
+  if (!reviewSession || reviewSession.index >= reviewSession.cards.length) return renderReviewComplete();
+  const card = reviewSession.cards[reviewSession.index];
   app.innerHTML = `
-    <section class="hero"><div class="eyebrow">Review</div><h1>Read it first.</h1><p>Try to understand the Russian before revealing English.</p></section>
-    <section class="card word-card">
-      <div class="big-russian russian">${word.russian}</div>
-      <button class="audio-button speak" data-speech="${escapeAttribute(word.russian)}">🔊</button>
-      ${reviewSession.revealed ? `<div class="translit">${word.translit}</div><div class="translation">${word.english}</div>` : ''}
+    <section class="hero compact-hero">
+      <div class="eyebrow">Smart review · ${reviewSession.index + 1}/${reviewSession.cards.length}</div>
+      <h1>Recall before reveal.</h1>
+      <p>Try to understand or say the English meaning before tapping the answer.</p>
     </section>
-    <div style="height:14px"></div>
-    ${reviewSession.revealed ? `<div class="button-row"><button class="secondary" data-review="again">Again</button><button class="primary" data-review="good">Good</button></div>` : '<button id="revealButton" class="primary">Show answer</button>'}`;
+    <section class="card word-card">
+      <div class="phrase-russian">${escapeHtml(card.russian)}</div>
+      <button class="audio-button speak" data-speech="${escapeAttribute(card.russian)}" aria-label="Hear Russian">🔊</button>
+      ${reviewSession.revealed ? `
+        ${state.settings.transliteration && card.translit ? `<div class="translit">${escapeHtml(card.translit)}</div>` : ''}
+        <div class="translation">${escapeHtml(card.english)}</div>` : ''}
+    </section>
+    <div class="spacer small"></div>
+    ${reviewSession.revealed ? `
+      <div class="review-ratings">
+        <button class="secondary" data-rating="again">Again<span>today</span></button>
+        <button class="secondary" data-rating="hard">Hard<span>1 day</span></button>
+        <button class="primary" data-rating="good">Good<span>longer</span></button>
+      </div>` :
+      `<button id="revealButton" class="primary">Show meaning</button>`}
+    <p class="review-footnote">Lesson ${card.lessonId} · review level ${card.level || 0}</p>`;
   bindSpeechButtons();
   if (!reviewSession.revealed) {
     document.getElementById('revealButton').addEventListener('click', () => { reviewSession.revealed = true; renderReviewCard(); });
   } else {
-    app.querySelectorAll('[data-review]').forEach((button) => button.addEventListener('click', () => advanceReview(button.dataset.review)));
+    app.querySelectorAll('[data-rating]').forEach(btn => btn.addEventListener('click', () => rateReview(btn.dataset.rating)));
   }
 }
-
-function advanceReview(rating) {
-  if (rating === 'again') reviewSession.words.push(reviewSession.words[reviewSession.index]);
+function rateReview(rating) {
+  const card = reviewSession.cards[reviewSession.index];
+  const current = state.review[card.key] || { level: 0, due: 0 };
+  let nextLevel = current.level || 0;
+  if (rating === 'again') nextLevel = 0;
+  if (rating === 'hard') nextLevel = Math.max(1, nextLevel);
+  if (rating === 'good') nextLevel = Math.min(SRS_INTERVALS.length - 1, nextLevel + 1);
+  const days = rating === 'again' ? 0 : rating === 'hard' ? 1 : SRS_INTERVALS[nextLevel];
+  state.review[card.key] = { level: nextLevel, due: Date.now() + days * DAY };
+  if (rating === 'again') reviewSession.cards.push({ ...card, level: nextLevel, due: Date.now() });
   reviewSession.index += 1;
   reviewSession.revealed = false;
-  if (reviewSession.index >= reviewSession.words.length) {
-    app.innerHTML = `<section class="onboarding" style="text-align:center"><div class="onboarding-art" style="font-size:52px">✓</div><div class="eyebrow">Review complete</div><h1>Готово.</h1><button id="finishReviewButton" class="primary">Back to home</button></section>`;
-    document.getElementById('finishReviewButton').addEventListener('click', () => { reviewSession = null; navigate('home'); });
-    return;
-  }
+  state.xp += rating === 'good' ? 2 : 1;
+  saveState({ study: true });
   renderReviewCard();
+}
+function renderReviewComplete() {
+  const due = dueReviewCards().length;
+  app.innerHTML = `
+    <section class="onboarding centered">
+      <div class="onboarding-art small-art">✓</div>
+      <div class="eyebrow">Review complete</div>
+      <h1>Готово.</h1>
+      <p>${due ? `${due} cards are still due.` : 'No cards are due right now. They will return over time.'}</p>
+      <button id="finishReviewButton" class="primary">Back home</button>
+    </section>`;
+  document.getElementById('finishReviewButton').addEventListener('click', () => { reviewSession = null; navigate('home'); });
 }
 
 function renderPractice() {
+  const items = course.couplePractice;
+  practiceIndex = Math.min(practiceIndex, items.length - 1);
+  const item = items[practiceIndex];
   app.innerHTML = `
-    <section class="hero"><div class="eyebrow">Practice</div><h1>Grammar-first mode.</h1><p>For this trial version, the focus is the five lessons and their sentence explanations. Conversation practice will be redesigned after you test these lessons.</p></section>
-    <section class="card"><div class="prompt">CURRENT TEST GOAL</div><h2>Do the explanations make each sentence easier to understand?</h2><p>Test Lessons 1–5 and note which grammar cards feel useful, too detailed, or still confusing.</p></section>`;
+    <section class="hero compact-hero">
+      <div class="eyebrow">Russian with your husband</div>
+      <h1>Use a sentence, not a quiz.</h1>
+      <p>Read the situation, try to say it in Russian, then reveal the model answer. These are phrases designed for everyday couple life.</p>
+    </section>
+    <section class="card practice-card">
+      <div class="practice-count">${practiceIndex + 1} / ${items.length}</div>
+      <div class="prompt">SITUATION</div>
+      <h2>${escapeHtml(item.scene)}</h2>
+      <div id="practiceAnswer" class="practice-answer hidden">
+        <div class="phrase-russian">${escapeHtml(item.target)}</div>
+        <div class="translation">${escapeHtml(item.help)}</div>
+        <button class="secondary speak" data-speech="${escapeAttribute(item.target)}">🔊 Hear Russian</button>
+      </div>
+      <button id="revealPractice" class="primary">Show Russian</button>
+    </section>
+    <div class="button-row practice-nav">
+      <button id="prevPractice" class="secondary" ${practiceIndex === 0 ? 'disabled' : ''}>← Previous</button>
+      <button id="nextPractice" class="secondary">${practiceIndex === items.length - 1 ? 'Start over' : 'Next →'}</button>
+    </div>`;
+  document.getElementById('revealPractice').addEventListener('click', () => {
+    document.getElementById('practiceAnswer').classList.remove('hidden');
+    document.getElementById('revealPractice').classList.add('hidden');
+    bindSpeechButtons();
+  });
+  document.getElementById('prevPractice').addEventListener('click', () => { if (practiceIndex > 0) { practiceIndex--; renderPractice(); }});
+  document.getElementById('nextPractice').addEventListener('click', () => {
+    practiceIndex = practiceIndex === items.length - 1 ? 0 : practiceIndex + 1;
+    renderPractice();
+  });
 }
 
 function startLesson(id) {
-  const lesson = lessons.find((item) => item.id === id);
-  if (!lesson) return;
-  const unlocked = id === 1 || state.completedLessons.includes(id - 1) || state.completedLessons.includes(id);
-  if (!unlocked) return alert('Complete the previous lesson first.');
-  lessonSession = { lessonId: id, step: 0, selected: [], locked: false };
+  const lesson = lessonById(id);
+  if (!lesson || !isUnlocked(id)) return;
+  lessonSession = { lessonId: id, step: 0, selected: [], locked: false, wrongAttempts: 0 };
   navigate('lesson');
 }
-
-function currentLesson() {
-  return lessons.find((lesson) => lesson.id === lessonSession.lessonId);
-}
+function currentLesson() { return lessonById(lessonSession?.lessonId); }
+function currentStep() { return currentLesson()?.steps[lessonSession?.step]; }
 
 function renderLesson() {
   if (!lessonSession) return navigate('course');
   const lesson = currentLesson();
-  const step = lesson.steps[lessonSession.step];
+  const step = currentStep();
+  if (!step) return finishLesson();
   const percent = Math.round(((lessonSession.step + 1) / lesson.steps.length) * 100);
-  app.innerHTML = `<section class="lesson-stage"><div class="lesson-progress"><div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div><div class="progress-meta"><span>Lesson ${lesson.id} · ${lesson.level}</span><span>${lessonSession.step + 1}/${lesson.steps.length}</span></div></div><div id="lessonContent"></div></section>`;
+  app.innerHTML = `
+    <section class="lesson-stage">
+      <div class="lesson-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+        <div class="progress-meta"><span>Lesson ${lesson.id} · ${escapeHtml(lesson.title)}</span><span>${lessonSession.step + 1}/${lesson.steps.length}</span></div>
+      </div>
+      <div id="lessonContent"></div>
+    </section>`;
   const container = document.getElementById('lessonContent');
-  if (step.type === 'learn') renderLearnStep(container, step);
-  if (step.type === 'choice') renderChoiceStep(container, step);
-  if (step.type === 'listen') renderListenStep(container, step);
-  if (step.type === 'build') renderBuildStep(container, step);
-  if (step.type === 'type') renderTypeStep(container, step);
+  const render = { learn: renderLearnStep, choice: renderChoiceStep, listen: renderListenStep, build: renderBuildStep, type: renderTypeStep }[step.type];
+  render?.(container, step);
 }
 
 function grammarBox(grammar) {
   if (!grammar) return '';
   return `
     <section class="grammar-box">
-      <div class="grammar-title">Grammar note</div>
-      <div class="grammar-rule">${grammar.rule}</div>
+      <div class="grammar-title">WHY THIS SENTENCE WORKS</div>
+      <div class="grammar-rule">${escapeHtml(grammar.rule)}</div>
       <div class="grammar-parts">
-        ${grammar.parts.map(([label, text, meaning]) => `
+        ${(grammar.parts || []).map(([label,text,meaning]) => `
           <div class="grammar-part">
-            <span class="grammar-label">${label}</span>
-            <strong class="russian">${text}</strong>
-            <span>${meaning}</span>
+            <span class="grammar-label">${escapeHtml(label)}</span>
+            <strong>${escapeHtml(text)}</strong>
+            <span>${escapeHtml(meaning)}</span>
           </div>`).join('')}
       </div>
-      <div class="grammar-order"><strong>Why this order:</strong> ${grammar.order}</div>
+      <div class="grammar-order"><strong>Order:</strong> ${escapeHtml(grammar.order)}</div>
+      ${grammar.tip ? `<div class="grammar-tip"><strong>Remember:</strong> ${escapeHtml(grammar.tip)}</div>` : ''}
     </section>`;
 }
-
+function transliteration(step) {
+  return state.settings.transliteration && step.translit ? `<div class="translit">${escapeHtml(step.translit)}</div>` : '';
+}
 function renderLearnStep(container, step) {
   container.innerHTML = `
-    <div class="prompt">${step.prompt}</div>
+    <div class="prompt">${escapeHtml(step.prompt)}</div>
     <section class="card word-card">
-      <div class="big-russian russian">${step.russian}</div>
-      <div class="translit">${step.translit}</div>
-      <div class="translation">${step.translation}</div>
+      <div class="phrase-russian multiline">${escapeHtml(step.russian).replaceAll('\n','<br>')}</div>
+      ${transliteration(step)}
+      <div class="translation multiline">${escapeHtml(step.translation).replaceAll('\n','<br>')}</div>
       <button class="audio-button speak" data-speech="${escapeAttribute(step.russian)}">🔊</button>
-      <div class="note">${step.note}</div>
+      <div class="note">${escapeHtml(step.note)}</div>
     </section>
     ${grammarBox(step.grammar)}
-    <div style="height:14px"></div>
+    <div class="spacer small"></div>
     <button id="nextButton" class="primary">Continue</button>`;
   bindSpeechButtons();
   document.getElementById('nextButton').addEventListener('click', nextLessonStep);
 }
-
 function renderChoiceStep(container, step) {
   container.innerHTML = `
-    <div class="prompt">${step.prompt}</div>
+    <div class="prompt">${escapeHtml(step.prompt)}</div>
     ${grammarBox(step.grammar)}
-    <div class="answers">${step.answers.map((answer) => `<button class="answer ${containsCyrillic(answer) ? 'russian' : ''}" data-answer="${escapeAttribute(answer)}">${answer}</button>`).join('')}</div>
-    <div id="feedback"></div>`;
-  container.querySelectorAll('[data-answer]').forEach((button) => button.addEventListener('click', () => handleChoice(button, step)));
+    <div class="answers">
+      ${step.answers.map(answer => `<button class="answer ${containsCyrillic(answer) ? 'russian-text' : ''}" data-answer="${escapeAttribute(answer)}">${escapeHtml(answer)}</button>`).join('')}
+    </div><div id="feedback"></div>`;
+  container.querySelectorAll('[data-answer]').forEach(btn => btn.addEventListener('click', () => handleChoice(btn, step)));
 }
-
 function renderListenStep(container, step) {
   container.innerHTML = `
-    <div class="prompt">${step.prompt}</div>
-    <section class="card word-card"><button id="listenButton" class="audio-button audio-large">🔊</button><p style="margin:12px 0 0">Tap to hear the Russian sentence.</p></section>
+    <div class="prompt">${escapeHtml(step.prompt)}</div>
+    <section class="card listening-card">
+      <button id="listenButton" class="audio-button audio-large" aria-label="Play Russian">🔊</button>
+      <p>Tap to hear the Russian sentence again.</p>
+    </section>
     ${grammarBox(step.grammar)}
-    <div class="answers">${step.answers.map((answer) => `<button class="answer ${containsCyrillic(answer) ? 'russian' : ''}" data-answer="${escapeAttribute(answer)}">${answer}</button>`).join('')}</div>
-    <div id="feedback"></div>`;
+    <div class="answers">
+      ${step.answers.map(answer => `<button class="answer ${containsCyrillic(answer) ? 'russian-text' : ''}" data-answer="${escapeAttribute(answer)}">${escapeHtml(answer)}</button>`).join('')}
+    </div><div id="feedback"></div>`;
   document.getElementById('listenButton').addEventListener('click', () => speakRussian(step.speech));
-  setTimeout(() => speakRussian(step.speech), 250);
-  container.querySelectorAll('[data-answer]').forEach((button) => button.addEventListener('click', () => handleChoice(button, step)));
+  setTimeout(() => speakRussian(step.speech), 300);
+  container.querySelectorAll('[data-answer]').forEach(btn => btn.addEventListener('click', () => handleChoice(btn, step)));
 }
-
 function handleChoice(button, step) {
   if (lessonSession.locked) return;
-  if (button.dataset.answer !== step.correct) {
+  const correct = button.dataset.answer === step.correct;
+  if (!correct) {
     button.classList.add('wrong');
-    navigator.vibrate?.(35);
+    button.disabled = true;
+    lessonSession.wrongAttempts++;
+    navigator.vibrate?.(30);
+    const feedback = document.getElementById('feedback');
+    feedback.innerHTML = `<div class="feedback wrong-feedback"><strong>Not this one.</strong><span>${escapeHtml(step.grammar?.rule || 'Try again.')}</span></div>`;
     return;
   }
   lessonSession.locked = true;
   button.classList.add('correct');
-  document.getElementById('feedback').innerHTML = `<div class="feedback"><strong>Correct.</strong>${step.translation ? `<span>${step.translation}</span>` : '<span>Good.</span>'}</div><div style="height:12px"></div><button id="nextButton" class="primary">Continue</button>`;
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback correct-feedback"><strong>Correct.</strong><span>${escapeHtml(step.translation || step.correct)}</span></div>
+    <div class="spacer tiny"></div><button id="nextButton" class="primary">Continue</button>`;
   document.getElementById('nextButton').addEventListener('click', nextLessonStep);
 }
-
 function renderBuildStep(container, step) {
   lessonSession.selected = [];
   container.innerHTML = `
-    <div class="prompt">${step.prompt}</div>
+    <div class="prompt">${escapeHtml(step.prompt)}</div>
     ${grammarBox(step.grammar)}
-    <div id="sentenceZone" class="sentence-zone"><span style="color:var(--muted)">Tap the parts in order</span></div>
-    <div class="word-bank">${step.chips.map((chip) => `<button class="chip russian" data-chip="${escapeAttribute(chip)}">${chip}</button>`).join('')}</div>
-    <div style="height:18px"></div>
-    <button id="checkSentence" class="primary">Check answer</button><div id="feedback"></div>`;
+    <div id="sentenceZone" class="sentence-zone"><span class="zone-placeholder">Tap the parts in order</span></div>
+    <div class="word-bank">
+      ${step.chips.map((chip, i) => `<button class="chip russian-text" data-chip-index="${i}">${escapeHtml(chip)}</button>`).join('')}
+    </div>
+    <div class="spacer small"></div>
+    <button id="checkSentence" class="primary">Check sentence</button>
+    <button id="resetSentence" class="text-button">Reset</button>
+    <div id="feedback"></div>`;
   const zone = document.getElementById('sentenceZone');
-  container.querySelectorAll('[data-chip]').forEach((button) => {
-    button.addEventListener('click', () => {
-      if (button.classList.contains('used')) return;
-      lessonSession.selected.push(button.dataset.chip);
-      button.classList.add('used');
-      zone.innerHTML = lessonSession.selected.map((word) => `<span class="chip russian selected-chip">${word}</span>`).join('');
-    });
-  });
-  document.getElementById('checkSentence').addEventListener('click', () => {
-    const correct = JSON.stringify(lessonSession.selected) === JSON.stringify(step.correct);
-    const feedback = document.getElementById('feedback');
-    if (!correct) {
-      feedback.innerHTML = '<div class="feedback"><strong>Not quite.</strong><span>Look at the grammar note above, then try again.</span></div>';
-      setTimeout(() => renderLesson(), 900);
-      return;
-    }
-    feedback.innerHTML = `<div class="feedback"><strong>Correct.</strong><span class="russian">${step.answerText}</span></div><div style="height:12px"></div><button id="nextButton" class="primary">Continue</button>`;
-    document.getElementById('nextButton').addEventListener('click', nextLessonStep);
-  });
+  container.querySelectorAll('[data-chip-index]').forEach(btn => btn.addEventListener('click', () => {
+    if (lessonSession.locked || btn.classList.contains('used')) return;
+    const chip = step.chips[Number(btn.dataset.chipIndex)];
+    lessonSession.selected.push(chip);
+    btn.classList.add('used');
+    zone.innerHTML = lessonSession.selected.map((word, i) => `<button class="selected-chip russian-text" data-selected-index="${i}">${escapeHtml(word)}</button>`).join('');
+    bindSelectedRemoval(container, step);
+  }));
+  document.getElementById('resetSentence').addEventListener('click', () => { lessonSession.selected = []; renderBuildStep(container, step); });
+  document.getElementById('checkSentence').addEventListener('click', () => checkBuiltSentence(step));
 }
-
-function renderTypeStep(container, step) {
-  container.innerHTML = `
-    <div class="prompt">${step.prompt}</div>
-    ${grammarBox(step.grammar)}
-    <section class="card"><input id="typeAnswer" class="type-answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${step.placeholder || ''}" /><div class="note">Hint: ${step.hint}</div></section>
-    <div style="height:14px"></div><button id="checkType" class="primary">Check answer</button><div id="feedback"></div>`;
-  const input = document.getElementById('typeAnswer');
-  const check = () => {
-    const normalized = input.value.trim().toLowerCase().replace(/[.!?,]/g, '');
-    const correct = step.answers.some((answer) => answer.toLowerCase().replace(/[.!?,]/g, '') === normalized);
-    const feedback = document.getElementById('feedback');
-    if (!correct) {
-      feedback.innerHTML = `<div class="feedback"><strong>Try again.</strong><span>${step.hint}</span></div>`;
-      return;
-    }
-    input.disabled = true;
-    feedback.innerHTML = `<div class="feedback"><strong>Correct.</strong><span class="russian">${step.answerText}</span></div><div style="height:12px"></div><button id="nextButton" class="primary">Continue</button>`;
-    document.getElementById('nextButton').addEventListener('click', nextLessonStep);
-  };
-  document.getElementById('checkType').addEventListener('click', check);
-  input.addEventListener('keydown', (event) => { if (event.key === 'Enter') check(); });
+function bindSelectedRemoval(container, step) {
+  container.querySelectorAll('[data-selected-index]').forEach(btn => btn.addEventListener('click', () => {
+    if (lessonSession.locked) return;
+    lessonSession.selected.splice(Number(btn.dataset.selectedIndex), 1);
+    renderBuildStep(container, step);
+  }));
 }
-
-function nextLessonStep() {
-  const lesson = currentLesson();
-  lessonSession.locked = false;
-  if (lessonSession.step < lesson.steps.length - 1) {
-    lessonSession.step += 1;
-    renderLesson();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+function checkBuiltSentence(step) {
+  const isCorrect = lessonSession.selected.length === step.correct.length && lessonSession.selected.every((v,i) => v === step.correct[i]);
+  const feedback = document.getElementById('feedback');
+  if (!isCorrect) {
+    lessonSession.wrongAttempts++;
+    feedback.innerHTML = `<div class="feedback wrong-feedback"><strong>Check the order.</strong><span>${escapeHtml(step.grammar?.order || 'Try again.')}</span></div>`;
+    navigator.vibrate?.(30);
     return;
   }
-  completeLesson();
+  lessonSession.locked = true;
+  feedback.innerHTML = `
+    <div class="feedback correct-feedback"><strong>${escapeHtml(step.answerText)}</strong><span>Good structure.</span></div>
+    <div class="spacer tiny"></div><button id="nextButton" class="primary">Continue</button>`;
+  document.getElementById('nextButton').addEventListener('click', nextLessonStep);
 }
-
-function completeLesson() {
+function renderTypeStep(container, step) {
+  container.innerHTML = `
+    <div class="prompt">${escapeHtml(step.prompt)}</div>
+    ${grammarBox(step.grammar)}
+    <section class="card typing-card">
+      <label for="typedAnswer">Type in Russian</label>
+      <input id="typedAnswer" class="type-input" lang="ru" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="${escapeAttribute(step.hint || '')}" />
+      <button id="checkTyped" class="primary">Check answer</button>
+    </section><div id="feedback"></div>`;
+  const input = document.getElementById('typedAnswer');
+  input.focus();
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') checkTyped(step); });
+  document.getElementById('checkTyped').addEventListener('click', () => checkTyped(step));
+}
+function checkTyped(step) {
+  if (lessonSession.locked) return;
+  const input = document.getElementById('typedAnswer');
+  const feedback = document.getElementById('feedback');
+  if (!isCorrectTyped(input.value, step.answers)) {
+    lessonSession.wrongAttempts++;
+    feedback.innerHTML = `<div class="feedback wrong-feedback"><strong>Try once more.</strong><span>Hint: ${escapeHtml(step.hint || step.grammar?.rule || '')}</span></div>`;
+    navigator.vibrate?.(30);
+    input.select();
+    return;
+  }
+  lessonSession.locked = true;
+  input.disabled = true;
+  feedback.innerHTML = `
+    <div class="feedback correct-feedback"><strong>${escapeHtml(step.answerText)}</strong><span>Correct.</span></div>
+    <div class="spacer tiny"></div><button id="nextButton" class="primary">Finish exercise</button>`;
+  document.getElementById('nextButton').addEventListener('click', nextLessonStep);
+}
+function nextLessonStep() {
+  lessonSession.step++;
+  lessonSession.selected = [];
+  lessonSession.locked = false;
+  saveState({ study: true });
+  renderLesson();
+}
+function finishLesson() {
   const lesson = currentLesson();
   const firstCompletion = !state.completedLessons.includes(lesson.id);
   if (firstCompletion) {
     state.completedLessons.push(lesson.id);
-    state.completedLessons.sort((a, b) => a - b);
     state.xp += lesson.xp;
+    seedLessonReview(lesson);
+  } else {
+    state.xp += Math.round(lesson.xp * 0.2);
   }
-  saveState();
+  saveState({ study: true });
+  const next = lessonById(lesson.id + 1);
+  app.innerHTML = `
+    <section class="onboarding centered">
+      <div class="onboarding-art small-art">✓</div>
+      <div class="eyebrow">Lesson ${lesson.id} complete</div>
+      <h1>${escapeHtml(lesson.title)}</h1>
+      <p>${firstCompletion ? `+${lesson.xp} XP · ${lesson.vocab.length} review cards added` : `Practice complete · +${Math.round(lesson.xp * .2)} XP`}</p>
+      <section class="card goal-summary">
+        <div class="prompt">YOU CAN NOW</div>
+        ${lesson.goals.map(goal => `<div class="goal-row">✓ <span>${escapeHtml(goal)}</span></div>`).join('')}
+      </section>
+      ${next ? `<button id="nextLessonButton" class="primary">Next · ${escapeHtml(next.title)}</button>` : `<button id="nextLessonButton" class="primary">Start smart review</button>`}
+      <button id="homeButton" class="text-button">Back home</button>
+    </section>`;
+  document.getElementById('nextLessonButton').addEventListener('click', () => next ? startLesson(next.id) : navigate('review'));
+  document.getElementById('homeButton').addEventListener('click', () => navigate('home'));
   lessonSession = null;
-  const nextLesson = lessons.find((item) => item.id === lesson.id + 1);
-  app.innerHTML = `<section class="onboarding" style="text-align:center"><div class="onboarding-art" style="font-size:54px">✓</div><div class="eyebrow">Lesson ${lesson.id} complete</div><h1>Отлично.</h1><p>${firstCompletion ? `You earned <strong style="color:var(--text)">${lesson.xp} XP</strong>.` : 'Lesson reviewed.'}</p><section class="card" style="margin-bottom:14px"><div class="prompt">CORE PATTERNS</div><h2 class="russian">${lesson.vocab.slice(0, 2).map((word) => word.russian).join(' · ')}</h2><p>${lesson.vocab.slice(0, 2).map((word) => word.english).join(' · ')}</p></section>${nextLesson ? `<div class="button-row"><button id="homeAfterLesson" class="secondary">Home</button><button id="nextLessonButton" class="primary">Lesson ${nextLesson.id}</button></div>` : '<button id="homeAfterLesson" class="primary">Finish trial</button>'}</section>`;
-  backButton.classList.add('hidden');
-  document.getElementById('homeAfterLesson').addEventListener('click', () => navigate('home'));
-  if (nextLesson) document.getElementById('nextLessonButton').addEventListener('click', () => startLesson(nextLesson.id));
 }
 
 function speakRussian(text) {
-  if (!('speechSynthesis' in window)) return alert('Audio is not supported by this browser.');
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
+  if (!('speechSynthesis' in window)) return alert('Speech is not available in this browser.');
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text.replaceAll('\n',' '));
   utterance.lang = 'ru-RU';
-  utterance.rate = 0.72;
-  utterance.pitch = 1;
-  window.speechSynthesis.speak(utterance);
+  utterance.rate = 0.82;
+  const voices = speechSynthesis.getVoices();
+  const russianVoice = voices.find(v => v.lang?.toLowerCase().startsWith('ru'));
+  if (russianVoice) utterance.voice = russianVoice;
+  speechSynthesis.speak(utterance);
 }
-
 function bindSpeechButtons() {
-  document.querySelectorAll('.speak').forEach((button) => {
-    button.addEventListener('click', () => speakRussian(button.dataset.speech));
+  app.querySelectorAll('.speak').forEach(btn => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => speakRussian(btn.dataset.speech || ''));
   });
 }
 
-function containsCyrillic(text) {
-  return /[А-Яа-яЁё]/.test(text);
-}
-
-function escapeAttribute(text) {
-  return String(text).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-}
-
-bottomNav.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-nav]');
+bottomNav.addEventListener('click', e => {
+  const button = e.target.closest('[data-nav]');
   if (button) navigate(button.dataset.nav);
 });
-
 backButton.addEventListener('click', () => {
-  lessonSession = null;
-  navigate('course');
+  if (currentView === 'lesson') {
+    lessonSession = null;
+    navigate('course');
+  }
 });
-
 brandButton.addEventListener('click', () => {
   if (state.onboarded && currentView !== 'lesson') navigate('home');
 });
+brandButton.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && state.onboarded && currentView !== 'lesson') navigate('home');
+});
 
-streakCount.textContent = state.streak;
+updateStreak();
+saveState();
 navigate(currentView);
