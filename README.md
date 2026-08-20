@@ -13,8 +13,9 @@ The course is intentionally **A1 → early A2**, not generic textbook A2. It con
 - Russian speech synthesis
 - sentence anatomy in every exercise
 - smart review intervals
+- immediate retry of missed lesson patterns
 - local progress, XP, and study streaks
-- mobile-first PWA behavior
+- mobile-first PWA behavior with offline core caching
 
 The sequence starts with zero-verb present-tense sentences and everyday couple language, then adds present actions, feminine past tense, future plans, wants/needs, location vs destination, dog routines, short messages, likes, physical states, connectors, and practical café/store language. Lessons 15 and 20 are conversational checkpoints rather than grammar dumps; Lessons 16–19 add communication repair, household requests, natural check-ins, and morning/night language.
 
@@ -27,7 +28,8 @@ Each lesson keeps one primary communicative goal and uses a repeated cycle:
 3. **Hear** it in Russian.
 4. **Build** it from sentence parts.
 5. **Recall** it by typing.
-6. **Review** vocabulary later with expanding intervals.
+6. **Correct** missed patterns before completing the lesson.
+7. **Review** vocabulary later with expanding intervals.
 
 Grammar cards label sentence roles such as SUBJECT, PREDICATE, OBJECT, PLACE, TIME, or CONNECTOR, then explain why the neutral beginner word order works.
 
@@ -35,15 +37,16 @@ The content favors language that can be used immediately at home, in messages, w
 
 ## Structure
 
-- `index.html` — shell and navigation
+- `index.html` — shell, navigation, and service-worker registration
 - `course-data.js` — curriculum/content only
 - `app.js` — learning engine, progress, SRS review, speech, and interactions
 - `styles.css` — mobile-first interface and readable Cyrillic typography
 - `manifest.webmanifest` — installable PWA metadata
+- `sw.js` — versioned offline core cache
 - `scripts/validate-course.js` — content/schema regression check
 - `scripts/smoke-app.js` — headless logic smoke test with mocked browser primitives
 
-Legacy experimental `stage2*`, `stage3.js`, and `trial.css` files are not loaded by the current app.
+Old experimental stage/trial files were removed from the redesigned branch so there is one canonical curriculum and one canonical UI path.
 
 ## Validation
 
@@ -52,6 +55,7 @@ Run:
 ```bash
 node --check course-data.js
 node --check app.js
+node --check sw.js
 node scripts/validate-course.js
 node scripts/smoke-app.js
 ```
