@@ -7,7 +7,8 @@
     "check:syntax": "node --check course-data.js && node --check app.js && node --check sw.js",
     "check:course": "node scripts/validate-course.js",
     "check:app": "node scripts/smoke-app.js",
-    "test": "npm run check:syntax && npm run check:course && npm run check:app"
+    "check:shell": "node scripts/validate-shell.js",
+    "test": "npm run check:syntax && npm run check:course && npm run check:app && npm run check:shell"
   },
   "engines": {
     "node": ">=20"
