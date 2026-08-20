@@ -1,0 +1,15 @@
+{
+  "name": "formommy",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Mobile-first Russian A1 to early A2 course for practical couple life.",
+  "scripts": {
+    "check:syntax": "node --check course-data.js && node --check app.js && node --check sw.js",
+    "check:course": "node scripts/validate-course.js",
+    "check:app": "node scripts/smoke-app.js",
+    "test": "npm run check:syntax && npm run check:course && npm run check:app"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
