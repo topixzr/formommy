@@ -1,67 +1,72 @@
 # Formommy
 
-A mobile-first Russian course for an English-speaking adult learning Russian for everyday life with a Russian-speaking spouse.
+A mobile-first adaptive Russian course for an English-speaking adult learning Russian for everyday life with a Russian-speaking spouse.
 
 ## Current course
 
-The course is intentionally **A1 → early A2**, not generic textbook A2. It contains:
+The course is intentionally **A1 → early A2**, not generic textbook A2. It now contains:
 
-- 20 sequential lessons
-- 120 lesson exercises
-- 82 review items
-- 16 open-recall “Russian with your husband” scenarios
-- Russian speech synthesis
-- sentence anatomy in every exercise
-- smart review intervals
+- 30 sequential lessons in 6 five-lesson modules
+- 180 lesson exercises
+- 122 review items
+- 24+ husband-focused open-recall scenarios
+- Russian speech synthesis and listening speed controls
+- sentence anatomy in every lesson exercise
 - immediate retry of missed lesson patterns
-- local progress, XP, and study streaks
-- mobile-first PWA behavior with offline core caching
+- adaptive 5-minute practice weighted toward weak skills
+- a personal Mistake Notebook built from repeated misses
+- skill-level weakness tracking for listening, recall, word order, past/future, movement, possession, questions, and more
+- Talk to Alex mini-dialogues
+- browser speech-recognition practice where supported
+- Standard / Casual / Very Casual Russian comparisons
+- module-completion capability summaries
+- weekly practice stats
+- local progress, XP, study streaks, and safe curriculum migration
+- installable mobile PWA behavior with versioned offline core caching
 
-The sequence starts with zero-verb present-tense sentences and everyday couple language, then adds present actions, feminine past tense, future plans, wants/needs, location vs destination, dog routines, short messages, likes, physical states, connectors, and practical café/store language. Lessons 15 and 20 are conversational checkpoints rather than grammar dumps; Lessons 16–19 add communication repair, household requests, natural check-ins, and morning/night language.
+The sequence starts with zero-verb present-tense sentences and everyday couple language, then adds present actions, feminine past tense, future plans, wants/needs, location vs destination, dog routines, messages, likes, physical states, connectors, cafés/stores, time, weekend plans, food objects, possession, ability, phone language, driving, weather, and a Eugene weekend checkpoint.
 
 ## Learning design
 
-Each lesson keeps one primary communicative goal and uses a repeated cycle:
+Each lesson uses a repeated cycle:
 
 1. **Understand** a useful sentence.
-2. **Recognize** the same pattern in multiple choice.
+2. **Recognize** the pattern.
 3. **Hear** it in Russian.
 4. **Build** it from sentence parts.
 5. **Recall** it by typing.
-6. **Correct** missed patterns before completing the lesson.
-7. **Review** vocabulary later with expanding intervals.
+6. **Correct** missed patterns before completion.
+7. **Review** vocabulary with expanding intervals.
+8. **Adapt** future short practice toward patterns the learner actually misses.
 
-Grammar cards label sentence roles such as SUBJECT, PREDICATE, OBJECT, PLACE, TIME, or CONNECTOR, then explain why the neutral beginner word order works.
+The app favors language that can be used immediately at home, in messages, with dogs, in a car, around Eugene, while ordering food, or planning normal couple life.
 
-The content favors language that can be used immediately at home, in messages, with dogs, in a car, around Eugene, or while ordering and shopping.
+## Product layers
 
-## Structure
-
-- `index.html` — shell, navigation, and service-worker registration
-- `course-data.js` — curriculum/content only
-- `app.js` — learning engine, progress, SRS review, speech, and interactions
-- `styles.css` — mobile-first interface and readable Cyrillic typography
-- `manifest.webmanifest` — installable PWA metadata
+- `course-data.js` — lessons 1–20
+- `course-pack-2.js` — lessons 21–30 and additional daily/couple practice content
+- `app.js` — canonical lesson, review, progress, SRS, speech, and interaction engine
+- `module-ui.js` / `module-pack-2.js` — six-module roadmap and previews
+- `learning-intelligence.js` — weak-skill model, adaptive weighting, mistake notebook, weekly stats
+- `quick-practice.js` — adaptive 5-item practice sessions
+- `practice-lab.js` — Talk to Alex, speaking, listening levels, natural Russian
+- `milestones.js` — module-completion outcomes
+- `preflight-migration.js` — preserves existing learner state when the curriculum version expands
+- `styles.css`, `module-ui.css`, `advanced-ui.css` — mobile-first interface
 - `sw.js` — versioned offline core cache
-- `scripts/validate-course.js` — content/schema regression check
-- `scripts/smoke-app.js` — headless logic smoke test with mocked browser primitives
-
-Old experimental stage/trial files were removed from the redesigned branch so there is one canonical curriculum and one canonical UI path.
 
 ## Validation
 
 Run:
 
 ```bash
-node --check course-data.js
-node --check app.js
-node --check sw.js
-node scripts/validate-course.js
-node scripts/smoke-app.js
+npm test
 ```
 
-`validate-course.js` verifies lesson ids, metadata, exercise-type coverage, grammar explanations, answer integrity, sentence-building parts, review content, and practice scenarios. `smoke-app.js` verifies startup, legacy-state migration, the immediate mistake-retry queue, and review seeding.
+The test suite checks syntax across all shipped JavaScript, validates all 30 lessons and their exercise schemas, smoke-tests app startup/retry/review behavior, verifies safe version-2 → version-3 progress migration, and checks local shell/PWA asset consistency.
 
-## Development rule
+GitHub Actions runs the same zero-dependency validation on pushes to `main` and `ai/**` branches and on pull requests.
 
-Keep curriculum content in `course-data.js` and UI/learning behavior in `app.js`. New lessons should follow the existing data schema rather than adding lesson-specific DOM code.
+## Design rule
+
+Keep the canonical lesson engine stable. New product behavior should be added as small composable layers unless it genuinely belongs in the core engine. New curriculum should follow the existing lesson schema so content growth does not create lesson-specific UI code.
