@@ -3,36 +3,36 @@
     {
       title: 'Dinner at home', context: 'A normal evening decision.',
       turns: [
-        ['Alex','Что будем есть?','What are we going to eat?'],
+        ['Alexey','Что будем есть?','What are we going to eat?'],
         ['You','Не знаю. Давай закажем пиццу.','I don’t know. Let’s order pizza.'],
-        ['Alex','Хорошо. Какую?','Okay. Which one?'],
+        ['Alexey','Хорошо. Какую?','Okay. Which one?'],
         ['You','Давай пепперони.','Let’s get pepperoni.']
       ]
     },
     {
       title: 'Coming home', context: 'A quick text-style check-in.',
       turns: [
-        ['Alex','Ты скоро будешь дома?','Will you be home soon?'],
+        ['Alexey','Ты скоро будешь дома?','Will you be home soon?'],
         ['You','Да, я уже еду.','Yes, I’m already on my way.'],
-        ['Alex','Хочешь кофе?','Do you want coffee?'],
+        ['Alexey','Хочешь кофе?','Do you want coffee?'],
         ['You','Да, пожалуйста.','Yes, please.']
       ]
     },
     {
       title: 'Dogs and plans', context: 'Coordinate a normal dog walk.',
       turns: [
-        ['Alex','Пойдём гулять с собаками?','Shall we walk the dogs?'],
+        ['Alexey','Пойдём гулять с собаками?','Shall we walk the dogs?'],
         ['You','Давай. Только через десять минут.','Sure. Just in ten minutes.'],
-        ['Alex','Хорошо.','Okay.'],
+        ['Alexey','Хорошо.','Okay.'],
         ['You','Я буду готова.','I’ll be ready.']
       ]
     },
     {
       title: 'Weekend in Eugene', context: 'Make a simple Saturday plan.',
       turns: [
-        ['Alex','Какие планы на сегодня?','What are the plans for today?'],
+        ['Alexey','Какие планы на сегодня?','What are the plans for today?'],
         ['You','Давай сначала выпьем кофе.','Let’s have coffee first.'],
-        ['Alex','А потом?','And then?'],
+        ['Alexey','А потом?','And then?'],
         ['You','Потом поедем гулять с собаками.','Then we’ll go walk the dogs.']
       ]
     }
@@ -70,7 +70,7 @@
   function renderPracticeHub() {
     app.innerHTML = `<section class="hero compact-hero"><div class="eyebrow">Practice lab</div><h1>Turn lessons into usable Russian.</h1><p>Choose a mode based on the skill you want to train right now.</p></section>
       <div class="practice-grid">
-        <button class="card practice-mode" data-mode="dialogue"><span>💬</span><div><strong>Talk to Alex</strong><small>Short real-life dialogues</small></div></button>
+        <button class="card practice-mode" data-mode="dialogue"><span>💬</span><div><strong>Talk to Alexey</strong><small>Short real-life dialogues</small></div></button>
         <button class="card practice-mode" data-mode="speaking"><span>🎙</span><div><strong>Speaking</strong><small>Say a phrase and see if the browser understands it</small></div></button>
         <button class="card practice-mode" data-mode="listening"><span>🎧</span><div><strong>Listening levels</strong><small>Slow → normal → no text</small></div></button>
         <button class="card practice-mode" data-mode="natural"><span>⚡</span><div><strong>Natural Russian</strong><small>Standard vs casual vs very casual</small></div></button>
@@ -88,7 +88,7 @@
 
   function renderDialogue() {
     const d = DIALOGUES[dialogueIndex], shown = d.turns.slice(0, turnIndex + 1);
-    app.innerHTML = `<section class="hero compact-hero"><div class="eyebrow">Talk to Alex · ${dialogueIndex + 1}/${DIALOGUES.length}</div><h1>${escapeHtml(d.title)}</h1><p>${escapeHtml(d.context)}</p></section>
+    app.innerHTML = `<section class="hero compact-hero"><div class="eyebrow">Talk to Alexey · ${dialogueIndex + 1}/${DIALOGUES.length}</div><h1>${escapeHtml(d.title)}</h1><p>${escapeHtml(d.context)}</p></section>
       <section class="card dialogue-card">${shown.map(([who,ru,en],i) => `<div class="dialogue-turn ${who === 'You' ? 'you' : 'alex'}"><small>${escapeHtml(who)}</small><strong>${escapeHtml(ru)}</strong><span>${i === turnIndex ? escapeHtml(en) : ''}</span><button class="mini-link dialogue-speak" data-speech="${escapeAttribute(ru)}">🔊</button></div>`).join('')}</section>
       <div class="button-row">${turnIndex < d.turns.length - 1 ? '<button class="primary" id="nextTurn">Next line</button>' : '<button class="primary" id="nextDialogue">Next dialogue</button>'}<button class="secondary" id="practiceHub">Modes</button></div>`;
     app.querySelectorAll('.dialogue-speak').forEach(b => b.addEventListener('click', () => speakAt(b.dataset.speech)));
