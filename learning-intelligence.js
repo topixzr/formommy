@@ -1,20 +1,9 @@
 (() => {
   const SKILL_LABELS = {
-    listening: 'Listening',
-    recall: 'Active recall',
-    'word-order': 'Word order',
-    'past-tense': 'Past tense',
-    future: 'Future plans',
-    'home-direction': 'дома vs домой',
-    possession: 'У меня есть / нет',
-    'feminine-object': 'Feminine objects',
-    'physical-state': 'Мне + state',
-    questions: 'Questions',
-    movement: 'Movement & places',
-    'couple-language': 'Couple language',
-    weather: 'Weather',
-    time: 'Time',
-    default: 'General Russian'
+    listening: 'Listening', recall: 'Active recall', 'word-order': 'Word order', 'past-tense': 'Past tense',
+    future: 'Future plans', 'home-direction': 'дома vs домой', possession: 'У меня есть / нет',
+    'feminine-object': 'Feminine objects', 'physical-state': 'Мне + state', questions: 'Questions',
+    movement: 'Movement & places', 'couple-language': 'Couple language', weather: 'Weather', time: 'Time', default: 'General Russian'
   };
 
   function ensureLearningState() {
@@ -73,31 +62,26 @@
     const answer = step?.answerText || step?.correct || step?.russian || (step?.answers && step.answers[0]) || '';
     const key = `${lesson?.id || 0}:${normalizeAnswer(answer)}:${skills.join(',')}`;
     const existing = learning.mistakes.find(m => m.key === key);
-    if (existing) {
-      existing.count += 1;
-      existing.lastSeen = Date.now();
-    } else {
-      learning.mistakes.push({ key, lessonId: lesson?.id || 0, prompt: step?.prompt || '', answer, skills, count: 1, lastSeen: Date.now() });
-    }
+    if (existing) { existing.count += 1; existing.lastSeen = Date.now(); }
+    else learning.mistakes.push({ key, lessonId: lesson?.id || 0, prompt: step?.prompt || '', answer, skills, count: 1, lastSeen: Date.now() });
     learning.mistakes.sort((a,b) => b.count - a.count || b.lastSeen - a.lastSeen);
     learning.mistakes = learning.mistakes.slice(0, 60);
+    saveState();
   }
 
   function recordSuccess(step, lesson) {
     inferSkills(step, lesson).forEach(skill => updateSkill(skill, true));
+    saveState();
   }
 
   function weakSkills(limit = 3) {
     return Object.keys(ensureLearningState().skills)
       .map(skill => ({ skill, score: scoreFor(skill), ...ensureLearningState().skills[skill] }))
-      .filter(item => item.wrong > 0)
-      .sort((a,b) => b.score - a.score)
-      .slice(0, limit);
+      .filter(item => item.wrong > 0).sort((a,b) => b.score - a.score).slice(0, limit);
   }
 
   function stepWeight(step, lesson) {
-    const skills = inferSkills(step, lesson);
-    const weakness = Math.max(0, ...skills.map(scoreFor));
+    const weakness = Math.max(0, ...inferSkills(step, lesson).map(scoreFor));
     let weight = 1 + weakness * 5;
     if (step.type === 'type') weight += 1.2;
     if (step.type === 'listen') weight += 0.8;
@@ -105,16 +89,11 @@
   }
 
   function weightedSample(items, count) {
-    const pool = [...items];
-    const result = [];
+    const pool = [...items], result = [];
     while (pool.length && result.length < count) {
       const total = pool.reduce((sum, item) => sum + item.weight, 0);
-      let pick = Math.random() * total;
-      let index = 0;
-      for (; index < pool.length; index++) {
-        pick -= pool[index].weight;
-        if (pick <= 0) break;
-      }
+      let pick = Math.random() * total, index = 0;
+      for (; index < pool.length; index++) { pick -= pool[index].weight; if (pick <= 0) break; }
       result.push(pool.splice(Math.min(index, pool.length - 1), 1)[0]);
     }
     return result;
@@ -129,49 +108,57 @@
   }
 
   function renderNotebook() {
-    const learning = ensureLearningState();
-    const mistakes = learning.mistakes.slice(0, 12);
-    const weak = weakSkills(5);
-    app.innerHTML = `
-      <section class="hero compact-hero">
-        <div class="eyebrow">Personal learning profile</div><h1>What needs another pass.</h1>
-        <p>This page is built from actual mistakes, not a generic curriculum estimate.</p>
-      </section>
-      <section class="card intelligence-card">
-        <div class="prompt">WEAKEST SKILLS</div>
-        ${weak.length ? weak.map(item => `<div class="skill-row"><div><strong>${escapeHtml(SKILL_LABELS[item.skill] || item.skill)}</strong><small>${item.wrong} misses · ${item.correct} correct</small></div><span>${Math.round(item.score * 100)}%</span></div>`).join('') : '<p>No weak pattern yet. Complete exercises first.</p>'}
-      </section>
+    const learning = ensureLearningState(), mistakes = learning.mistakes.slice(0, 12), weak = weakSkills(5);
+    app.innerHTML = `<section class="hero compact-hero"><div class="eyebrow">Personal learning profile</div><h1>What needs another pass.</h1><p>This page is built from actual mistakes, not a generic curriculum estimate.</p></section>
+      <section class="card intelligence-card"><div class="prompt">WEAKEST SKILLS</div>
+      ${weak.length ? weak.map(item => `<div class="skill-row"><div><strong>${escapeHtml(SKILL_LABELS[item.skill] || item.skill)}</strong><small>${item.wrong} misses · ${item.correct} correct</small></div><span>${Math.round(item.score * 100)}%</span></div>`).join('') : '<p>No weak pattern yet. Complete exercises first.</p>'}</section>
       <div class="section-title"><div><h3>Mistake notebook</h3><p>Repeated misses rise to the top automatically.</p></div></div>
-      <section class="mistake-list">
-        ${mistakes.length ? mistakes.map(m => `<article class="card mistake-card"><div class="mistake-count">×${m.count}</div><div><small>Lesson ${m.lessonId}</small><strong>${escapeHtml(m.answer || m.prompt)}</strong><span>${escapeHtml(m.skills.map(s => SKILL_LABELS[s] || s).join(' · '))}</span></div></article>`).join('') : '<section class="card"><p>Your repeated mistakes will appear here.</p></section>'}
-      </section>
-      <button class="primary" id="adaptivePracticeNow">Practice weak spots</button>
-      <button class="text-button" id="notebookHome">Back home</button>`;
+      <section class="mistake-list">${mistakes.length ? mistakes.map(m => `<article class="card mistake-card"><div class="mistake-count">×${m.count}</div><div><small>Lesson ${m.lessonId}</small><strong>${escapeHtml(m.answer || m.prompt)}</strong><span>${escapeHtml(m.skills.map(s => SKILL_LABELS[s] || s).join(' · '))}</span></div></article>`).join('') : '<section class="card"><p>Your repeated mistakes will appear here.</p></section>'}</section>
+      <button class="primary" id="adaptivePracticeNow">Practice weak spots</button><button class="text-button" id="notebookHome">Back home</button>`;
     document.getElementById('adaptivePracticeNow').addEventListener('click', () => window.startQuickPractice?.());
     document.getElementById('notebookHome').addEventListener('click', () => navigate('home'));
   }
 
   function weeklyStats() {
     const sessions = ensureLearningState().sessions.filter(s => Date.now() - s.time < 7 * DAY);
-    return {
-      sessions: sessions.length,
-      exercises: sessions.reduce((n,s) => n + (s.exercises || 0), 0),
-      minutes: sessions.reduce((n,s) => n + (s.minutes || 0), 0),
-      weak: weakSkills(1)[0]
-    };
+    return { sessions: sessions.length, exercises: sessions.reduce((n,s) => n + (s.exercises || 0), 0), minutes: sessions.reduce((n,s) => n + (s.minutes || 0), 0), weak: weakSkills(1)[0] };
   }
 
   function logSession(type, exercises, minutes = 5) {
     const learning = ensureLearningState();
     learning.sessions.push({ type, exercises, minutes, time: Date.now() });
     learning.sessions = learning.sessions.filter(s => Date.now() - s.time < 35 * DAY).slice(-120);
+    saveState();
   }
+
+  function captureResult(target) {
+    if (!lessonSession) return;
+    const step = currentStep(), lesson = currentLesson();
+    if (!step || !lesson) return;
+    queueMicrotask(() => {
+      let result = null;
+      if (target.matches('[data-answer]')) result = target.classList.contains('correct') ? true : target.classList.contains('wrong') ? false : null;
+      if (target.id === 'checkSentence' || target.id === 'checkTyped') {
+        const feedback = document.getElementById('feedback');
+        result = feedback?.querySelector('.correct-feedback') ? true : feedback?.querySelector('.wrong-feedback') ? false : null;
+      }
+      if (result === true) recordSuccess(step, lesson);
+      if (result === false) recordMistake(step, lesson);
+    });
+  }
+
+  document.addEventListener('click', e => {
+    const target = e.target.closest('[data-answer], #checkSentence, #checkTyped');
+    if (target) captureResult(target);
+  });
+  document.addEventListener('keyup', e => {
+    if (e.key === 'Enter' && e.target?.id === 'typedAnswer') captureResult(document.getElementById('checkTyped') || e.target);
+  });
 
   const previousHome = window.renderHome;
   window.renderHome = function () {
     previousHome();
-    const weak = weakSkills(1)[0];
-    const week = weeklyStats();
+    const weak = weakSkills(1)[0], week = weeklyStats();
     const target = document.querySelector('.quick-practice-entry') || document.querySelector('.stats');
     if (!target) return;
     const panel = document.createElement('section');
