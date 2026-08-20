@@ -6,17 +6,17 @@ A mobile-first Russian course for an English-speaking adult learning Russian for
 
 The course is intentionally **A1 → early A2**, not generic textbook A2. It contains:
 
-- 15 sequential lessons
-- 90 lesson exercises
-- 62 review items
-- 8 open-recall “Russian with your husband” scenarios
+- 20 sequential lessons
+- 120 lesson exercises
+- 82 review items
+- 16 open-recall “Russian with your husband” scenarios
 - Russian speech synthesis
 - sentence anatomy in every exercise
 - smart review intervals
 - local progress, XP, and study streaks
 - mobile-first PWA behavior
 
-The sequence starts with zero-verb present-tense sentences and everyday couple language, then adds present actions, feminine past tense, future plans, wants/needs, location vs destination, dog routines, short messages, likes, physical states, connectors, and practical café/store language. Lesson 15 is a conversational checkpoint rather than a grammar dump.
+The sequence starts with zero-verb present-tense sentences and everyday couple language, then adds present actions, feminine past tense, future plans, wants/needs, location vs destination, dog routines, short messages, likes, physical states, connectors, and practical café/store language. Lessons 15 and 20 are conversational checkpoints rather than grammar dumps; Lessons 16–19 add communication repair, household requests, natural check-ins, and morning/night language.
 
 ## Learning design
 
@@ -41,6 +41,7 @@ The content favors language that can be used immediately at home, in messages, w
 - `styles.css` — mobile-first interface and readable Cyrillic typography
 - `manifest.webmanifest` — installable PWA metadata
 - `scripts/validate-course.js` — content/schema regression check
+- `scripts/smoke-app.js` — headless logic smoke test with mocked browser primitives
 
 Legacy experimental `stage2*`, `stage3.js`, and `trial.css` files are not loaded by the current app.
 
@@ -52,9 +53,10 @@ Run:
 node --check course-data.js
 node --check app.js
 node scripts/validate-course.js
+node scripts/smoke-app.js
 ```
 
-`validate-course.js` verifies lesson ids, metadata, grammar explanations, answer integrity, sentence-building parts, review content, and practice scenarios.
+`validate-course.js` verifies lesson ids, metadata, exercise-type coverage, grammar explanations, answer integrity, sentence-building parts, review content, and practice scenarios. `smoke-app.js` verifies startup, legacy-state migration, the immediate mistake-retry queue, and review seeding.
 
 ## Development rule
 
