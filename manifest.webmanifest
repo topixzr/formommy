@@ -1,7 +1,7 @@
 {
-  "name": "Formommy — Russian A1 to A2",
+  "name": "Formommy — Russian for Us",
   "short_name": "Formommy",
-  "description": "A mobile-first Russian A1-to-A2 trial course with readable text and grammar explanations in every exercise.",
+  "description": "A mobile-first Russian A1-to-A2 course for practical everyday couple life.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0b0d11",
