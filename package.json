@@ -1,16 +1,14 @@
 {
   "name": "formommy",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "Mobile-first Russian A1 to early A2 course for practical couple life.",
+  "description": "Adaptive mobile-first Russian A1 to early A2 course for practical couple life.",
   "scripts": {
-    "check:syntax": "node --check course-data.js && node --check app.js && node --check module-ui.js && node --check sw.js",
+    "check:syntax": "node --check course-data.js && node --check course-pack-2.js && node --check preflight-migration.js && node --check app.js && node --check module-ui.js && node --check module-pack-2.js && node --check learning-intelligence.js && node --check quick-practice.js && node --check practice-lab.js && node --check milestones.js && node --check sw.js",
     "check:course": "node scripts/validate-course.js",
     "check:app": "node scripts/smoke-app.js",
     "check:shell": "node scripts/validate-shell.js",
     "test": "npm run check:syntax && npm run check:course && npm run check:app && npm run check:shell"
   },
-  "engines": {
-    "node": ">=20"
-  }
+  "engines": { "node": ">=20" }
 }
