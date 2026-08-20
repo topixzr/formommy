@@ -9,11 +9,12 @@
   <meta name="apple-mobile-web-app-title" content="Formommy" />
   <meta name="description" content="A mobile-first adaptive Russian A1 to A2 course built around practical everyday couple life." />
   <title>Formommy — Russian for Us</title>
-  <link rel="manifest" href="manifest.webmanifest?v=12" />
+  <link rel="manifest" href="manifest.webmanifest?v=13" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=12" />
-  <link rel="stylesheet" href="module-ui.css?v=12" />
-  <link rel="stylesheet" href="advanced-ui.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=13" />
+  <link rel="stylesheet" href="module-ui.css?v=13" />
+  <link rel="stylesheet" href="advanced-ui.css?v=13" />
+  <link rel="stylesheet" href="ai-help.css?v=13" />
 </head>
 <body>
   <div class="app-shell">
@@ -30,16 +31,17 @@
       <button data-nav="tutor" class="nav-item"><span aria-hidden="true">✦</span><small>Practice</small></button>
     </nav>
   </div>
-  <script src="course-data.js?v=12"></script>
-  <script src="course-pack-2.js?v=12"></script>
-  <script src="preflight-migration.js?v=12"></script>
-  <script src="app.js?v=12"></script>
-  <script src="module-ui.js?v=12"></script>
-  <script src="module-pack-2.js?v=12"></script>
-  <script src="learning-intelligence.js?v=12"></script>
-  <script src="quick-practice.js?v=12"></script>
-  <script src="practice-lab.js?v=12"></script>
-  <script src="milestones.js?v=12"></script>
+  <script src="course-data.js?v=13"></script>
+  <script src="course-pack-2.js?v=13"></script>
+  <script src="preflight-migration.js?v=13"></script>
+  <script src="app.js?v=13"></script>
+  <script src="module-ui.js?v=13"></script>
+  <script src="module-pack-2.js?v=13"></script>
+  <script src="learning-intelligence.js?v=13"></script>
+  <script src="quick-practice.js?v=13"></script>
+  <script src="practice-lab.js?v=13"></script>
+  <script src="milestones.js?v=13"></script>
+  <script src="ai-help.js?v=13"></script>
   <script>
     if (state.onboarded) navigate('home');
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
